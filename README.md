@@ -14,10 +14,18 @@ The lab application used in this workshop is available at https://github.com/ope
 * Promote Releases to Production
 * Zero-Downtime Deployment in Production
 
-# Workshop Guides
+# Run Guides Locally for Development
+```
+$ git clone https://github.com/openshift-labs/devops-oab-guides.git
+$ cd devops-oab-guides
 
-You can deploy the workshop guides on OpenShift using the provided template:
+$ docker run -p 8080:8080 -v $(pwd):/app-data \
+              -e CONTENT_URL_PREFIX="file:///app-data" \
+              -e WORKSHOPS_URLS="file:///app-data/_devops-workshop.yml" \
+              osevg/workshopper:latest 
+```
+
+# Deploy Guides on OpenShift
 ```
 $ oc new-app -f openshift/guides-template.yml --param=OPENSHIFT_MASTER=$(oc whoami --show-server) 
 ```
-

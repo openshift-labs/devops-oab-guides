@@ -62,7 +62,7 @@ objects:
         containers:
         - env:
           - name: CONTENT_URL_PREFIX
-            value: https://raw.githubusercontent.com/openshift-labs/devops-guides/${GIT_REF}
+            value: https://raw.githubusercontent.com/openshift-labs/devops-oab-guides/${GIT_REF}
           - name: WORKSHOPS_URLS
             value: file:///app/config/guides-devops.yml
           - name: CACHE_PRELOAD
