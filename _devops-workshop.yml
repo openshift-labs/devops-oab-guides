@@ -1,5 +1,8 @@
 id: "devops"
-name: "DevOps Workshop with OpenShift"
+name: "DevOps Workshop with OpenShift and OpenShift Ansible Broker"
+
+content:
+  url: https://raw.githubusercontent.com/openshift-labs/devops-oab-guides/master
 
 vars:
   OPENSHIFT_URL: "https://192.168.99.100:8443"

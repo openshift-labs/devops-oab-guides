@@ -61,8 +61,6 @@ objects:
       spec:
         containers:
         - env:
-          - name: CONTENT_URL_PREFIX
-            value: https://raw.githubusercontent.com/openshift-labs/devops-oab-guides/${GIT_REF}
           - name: WORKSHOPS_URLS
             value: file:///app/config/guides-devops.yml
           - name: CACHE_PRELOAD
@@ -158,7 +156,10 @@ objects:
   data:
     guides-devops.yml: |-
       id: "devops"
-      name: "DevOps Workshop with OpenShift"
+      name: "DevOps Workshop with OpenShift and OpenShift Ansible Broker"
+
+      content:
+        url: https://raw.githubusercontent.com/openshift-labs/devops-oab-guides/${GIT_REF}
       
       vars:
         OPENSHIFT_URL: "${OPENSHIFT_MASTER}"
