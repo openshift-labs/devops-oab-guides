@@ -29,3 +29,13 @@ $ docker run -p 8080:8080 -v $(pwd):/app-data \
 ```
 $ oc new-app -f openshift/guides-template.yml --param=OPENSHIFT_MASTER=$(oc whoami --show-server) 
 ```
+
+# Prepare OpenShift Cluster for Labs
+You need [Ansible](http://docs.ansible.com/ansible/latest/intro_installation.html) to use the provided playbook for deploying the required services (Gogs, Nexus, etc) for running these labs:
+
+```
+$ git clone https://github.com/openshift-labs/devops-oab-labs
+$ cd devops-oab-labs/ansible
+$ ansible-galaxy install -r requiements.yml
+$ ansible-playbook init.yml
+```
