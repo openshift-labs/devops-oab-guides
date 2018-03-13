@@ -37,5 +37,10 @@ You need [Ansible](http://docs.ansible.com/ansible/latest/intro_installation.htm
 $ git clone https://github.com/openshift-labs/devops-oab-labs
 $ cd devops-oab-labs/ansible
 $ ansible-galaxy install -r requiements.yml
+
+# single openshift cluster per user
 $ ansible-playbook init.yml
+
+# shared openshift cluster for all users
+$ ansible-playbook init.yml -e generated_gogs_user_count=20
 ```

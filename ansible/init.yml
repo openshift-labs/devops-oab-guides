@@ -5,9 +5,13 @@
   run_once: true
   vars:
     infra_project: lab-infra
-    user_count: 5
-    user_format: user%02d
-    user_password: openshift
+    user_gogs_name: developer
+    user_gogs_password: openshift
+    user_gogs_admin: gogs
+    user_gogs_admin_password: openshift
+    generated_gogs_user_count: 0
+    generated_gogs_user_format: user%02d
+    generate_gogs_users: false
     labs_github_ref: master
   
   tasks:
@@ -26,6 +30,7 @@
         name: openshift_workshopper
       vars:
         project_name: "{{ infra_project }}"
+        workshopper_content_url_prefix: "https://raw.githubusercontent.com/openshift-labs/devops-oab-guides/master"
         workshopper_workshop_urls: "https://raw.githubusercontent.com/openshift-labs/devops-oab-guides/master/_devops-workshop.yml"
         workshopper_env_vars:
           PROJECT_SUFFIX: ""
@@ -45,26 +50,41 @@
         project_desc: "DevOps Workshop Infrastructure"
         gogs_route: "{{ gogs_hostname }}"
         gogs_image_version: 0.11.34
-        gogs_admin_user: gogs
-        gogs_admin_password: "{{ user_password }}"
-        gogs_password: "{{ user_password }}"
-        gogs_generate_user_count: "{{ user_count }}"
-        gogs_generate_user_format: "{{ user_format }}"
+        gogs_admin_user: "{{ user_gogs_admin }}"
+        gogs_user: "{{ user_gogs_name }}"
+        gogs_admin_password: "{{ user_gogs_password }}"
+        gogs_password: "{{ user_gogs_admin_password }}"
+        gogs_generate_user_count: "{{ generated_gogs_user_count }}"
+        gogs_generate_user_format: "{{ generated_gogs_user_format }}"
         clean_install: true
       tags: gogs
 
-    - name: create projects git repo for users
+    - name: create projects git repo for {{ user_gogs_name }} user
+      uri:
+        url: http://{{ gogs_hostname }}/api/v1/user/repos
+        method: POST
+        body: '{"name": "projects", "private": false}'
+        body_format: json
+        user: "{{ user_gogs_name }}"
+        password: "{{ user_gogs_password }}"
+        status_code: 200,201
+        force_basic_auth: true
+        ignore_errors: true
+      tags: gogs
+
+    - name: create projects git repo for generated users
       uri:
         url: http://{{ gogs_hostname }}/api/v1/user/repos
         method: POST
         body: '{"name": "projects", "private": false}'
         body_format: json
         user: "{{ item }}"
-        password: "{{ user_password }}"
+        password: "{{ user_gogs_password }}"
         status_code: 200,201
         force_basic_auth: true
         ignore_errors: true
-      with_sequence: start=0 end={{ user_count }} format="{{ user_format }}"
+      with_sequence: start=0 end={{ generated_gogs_user_count }} format="{{ generated_gogs_user_format }}"
+      when: generate_gogs_users > 0
       tags: gogs
 
     - name: create temporary git directory
@@ -95,10 +115,18 @@
         chdir: "{{ git_dir.path }}"
       tags: gogs
 
-    - name: push projects git repo to Gogs
+    - name: push projects git repo to Gogs for {{ user_gogs_name }} user
       shell: |
-        git push -f http://{{ item }}:{{ user_password }}@{{ gogs_hostname }}/{{ item }}/projects.git master
+        git push -f http://{{ user_gogs_name }}:{{ user_gogs_password }}@{{ gogs_hostname }}/{{ user_gogs_name }}/projects.git master
       args:
         chdir: "{{ git_dir.path }}"
-      with_sequence: start=0 end={{ user_count }} format="{{ user_format }}"
+      tags: gogs
+
+    - name: push projects git repo to Gogs for generated users
+      shell: |
+        git push -f http://{{ item }}:{{ user_gogs_password }}@{{ gogs_hostname }}/{{ item }}/projects.git master
+      args:
+        chdir: "{{ git_dir.path }}"
+      with_sequence: start=0 end={{ generated_gogs_user_count }} format="{{ generated_gogs_user_format }}"
+      when: generated_gogs_user_count > 0
       tags: gogs

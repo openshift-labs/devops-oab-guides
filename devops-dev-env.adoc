@@ -9,8 +9,8 @@ $ oc new-project dev{{PROJECT_SUFFIX}} --display-name="Development Environment"
 
 # replace with Gogs url
 
-$ oc new-app https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/coolstore-template.yaml \
-      GIT_URI=https://github.com/openshift-labs/devops-oab-labs.git 
+$ oc new-app -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/coolstore-template.yaml \
+      --param=GIT_URI={{GIT_SERVER_URL}}/{{GIT_USER}}/projects.git
 
 # Try out web route in the browser
 
