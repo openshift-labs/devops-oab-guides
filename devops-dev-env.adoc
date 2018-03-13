@@ -7,10 +7,43 @@
 $ oc login 
 $ oc new-project dev{{PROJECT_SUFFIX}} --display-name="Development Environment"
 
-# replace with Gogs url
 
-$ oc new-app -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/coolstore-template.yaml \
-      --param=GIT_URI={{GIT_SERVER_URL}}/{{GIT_USER}}/projects.git
+# download code
+wget https://github.com/openshift-labs/devops-oab-labs/archive/master.zip
+unzip devops-oab-labs-master.zip
+mv devops-oab-labs-master/* .
+rm -rf devops-oab-labs-master
+
+# Register in gogs as user {{GIT_USER}}
+# Create catalog-spring-boot repo in Gogs
+# Create web-nodejs repo in Gogs
+
+# add catalog code to git
+cd catalog-spring-boot
+git config --global user.name "rhdeveloper"
+git config --global user.email "rhdeveloper@me.com"
+git init
+git add . --all
+git commit -m "initial add"
+git remote add origin {{GIT_SERVER_URL}}/{{GIT_USER}}/catalog-spring-boot.git
+git push -u origin master
+
+# add web code to git
+cd ../web-nodejs
+git init
+git add . --all
+git commit -m "initial add"
+git remote add origin {{GIT_SERVER_URL}}/{{GIT_USER}}/web-nodejs.git
+git push -u origin master
+
+# deploy catalog
+$ oc new-app -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/catalog-template.yaml \
+      --param=GIT_URI={{GIT_SERVER_URL}}/{{GIT_USER}}/catalog-spring-boot.git \
+      --param=MAVEN_MIRROR_URL={{NEXUS_URL}}
+
+# deploy web
+$ oc new-app -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/web-template.yaml \
+      --param=GIT_URI={{GIT_SERVER_URL}}/{{GIT_USER}}/web-nodejs.git
 
 # Try out web route in the browser
 

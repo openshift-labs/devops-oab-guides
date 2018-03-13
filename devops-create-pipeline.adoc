@@ -25,7 +25,9 @@ pipeline {
       steps {
         script {
           openshift.withCluster() {
-            openshift.startBuild("catalog", "--from-file=target/catalog-1.0-SNAPSHOT.jar", "--wait")
+            sh "mkdir catalog-spring-boot/target/catalog-spring-boot"
+            sh "cp catalog-spring-boot/target/catalog-1.0-SNAPSHOT.jar catalog-spring-boot/target/catalog-spring-boot"
+            openshift.startBuild("catalog", "--from-dir=catalog-spring-boot/target/catalog-spring-boot", "--wait")
           }
         }
       }
