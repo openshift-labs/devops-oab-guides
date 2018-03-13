@@ -31,7 +31,7 @@ $ oc new-app -f openshift/guides-template.yml --param=OPENSHIFT_MASTER=$(oc whoa
 ```
 
 # Prepare OpenShift Cluster for Labs
-You need [Ansible](http://docs.ansible.com/ansible/latest/intro_installation.html) to use the provided playbook for deploying the required services (Gogs, Nexus, etc) for running these labs:
+You need [Ansible](http://docs.ansible.com/ansible/latest/intro_installation.html) to use the provided playbook for deploying the required services (Gogs, Nexus, etc) and initializes them (create repo, import code, etc) for running these labs:
 
 ```
 $ git clone https://github.com/openshift-labs/devops-oab-labs

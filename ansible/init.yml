@@ -1,0 +1,104 @@
+---
+- name: Deploy Infra Components for DevOps with OpenShift and OpenShift Ansible Broker Workshop
+  hosts: localhost
+  gather_facts: false
+  run_once: true
+  vars:
+    infra_project: lab-infra
+    user_count: 5
+    user_format: user%02d
+    user_password: openshift
+    labs_github_ref: master
+  
+  tasks:
+    - include_role:
+        name: openshift_common_facts
+      tags: always
+
+    - import_role:
+        name: openshift_sonatype_nexus
+      vars:
+        project_name: "{{ infra_project }}"
+        nexus_image_version: 3.7.1
+      tags: nexus
+
+    - import_role:
+        name: openshift_workshopper
+      vars:
+        project_name: "{{ infra_project }}"
+        workshopper_workshop_urls: "https://raw.githubusercontent.com/openshift-labs/devops-oab-guides/master/_devops-workshop.yml"
+        workshopper_env_vars:
+          PROJECT_SUFFIX: ""
+          GOGS_URL: http://{{ gogs_hostname }}
+          OPENSHIFT_DOCS_BASE: "https://docs.openshift.com/container-platform/3.7"
+      tags: guides
+
+    - set_fact:
+        gogs_hostname: gogs-{{ infra_project }}.{{ apps_hostname_suffix }}
+      tags: gogs
+
+    - import_role:
+        name: openshift_gogs
+      vars:
+        project_name: "{{ infra_project }}"
+        project_display_name: "DevOps Workshop Infrastructure"
+        project_desc: "DevOps Workshop Infrastructure"
+        gogs_route: "{{ gogs_hostname }}"
+        gogs_image_version: 0.11.34
+        gogs_admin_user: gogs
+        gogs_admin_password: "{{ user_password }}"
+        gogs_password: "{{ user_password }}"
+        gogs_generate_user_count: "{{ user_count }}"
+        gogs_generate_user_format: "{{ user_format }}"
+        clean_install: true
+      tags: gogs
+
+    - name: create projects git repo for users
+      uri:
+        url: http://{{ gogs_hostname }}/api/v1/user/repos
+        method: POST
+        body: '{"name": "projects", "private": false}'
+        body_format: json
+        user: "{{ item }}"
+        password: "{{ user_password }}"
+        status_code: 200,201
+        force_basic_auth: true
+        ignore_errors: true
+      with_sequence: start=0 end={{ user_count }} format="{{ user_format }}"
+      tags: gogs
+
+    - name: create temporary git directory
+      tempfile:
+        state: directory
+        prefix: devops-oab-git
+      register: git_dir
+      tags: gogs
+
+    - name: unarchive labs source archive
+      unarchive:
+        remote_src: yes
+        src: "https://github.com/openshift-labs/devops-oab-labs/archive/{{ labs_github_ref }}.zip"
+        dest: "{{ git_dir.path }}"
+      tags: gogs
+
+    - name: init projects git repo
+      shell: |
+        mv {{ git_dir.path }}/devops-oab-labs-{{ labs_github_ref }}/* {{ git_dir.path }}
+        rm -rf {{ git_dir.path }}/devops-oab-labs-{{ labs_github_ref }}
+        echo "solutions/" >> {{ git_dir.path }}/.gitignore
+        git init
+        git add . --all
+        git config user.email "rhdeveloper@labs.com"
+        git config user.name "rhdeveloper"
+        git commit -m "Initial add"
+      args:
+        chdir: "{{ git_dir.path }}"
+      tags: gogs
+
+    - name: push projects git repo to Gogs
+      shell: |
+        git push -f http://{{ item }}:{{ user_password }}@{{ gogs_hostname }}/{{ item }}/projects.git master
+      args:
+        chdir: "{{ git_dir.path }}"
+      with_sequence: start=0 end={{ user_count }} format="{{ user_format }}"
+      tags: gogs
