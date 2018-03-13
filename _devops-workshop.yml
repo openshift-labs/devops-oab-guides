@@ -23,13 +23,4 @@ vars:
 modules:
   activate:
   - devops-intro
-  - devops-explore-openshift
-  - devops-deployment-envs
-  - devops-simple-pipeline
-  - devops-pipeline-scm
-  - devops-promotion
-  - devops-webhook
-  - devops-zerodowntime-manual
-  - devops-zerodowntime-automated
-  - devops-deploy-jenkins
-  - devops-custom-slave
+  - devops-dev-env

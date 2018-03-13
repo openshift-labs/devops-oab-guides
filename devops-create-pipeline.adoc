@@ -1,0 +1,14 @@
+## Create CI/CD Pipeline
+
+[source,shell]
+----
+
+# create this file in the root of the repo
+
+
+
+
+
+----
+
+
