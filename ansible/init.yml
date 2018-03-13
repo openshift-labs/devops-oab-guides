@@ -5,13 +5,9 @@
   run_once: true
   vars:
     infra_project: lab-infra
-    user_gogs_name: developer
-    user_gogs_password: openshift
     user_gogs_admin: gogs
-    user_gogs_admin_password: openshift
-    generated_gogs_user_count: 0
-    generated_gogs_user_format: user%02d
-    generate_gogs_users: false
+    user_gogs_test: test
+    user_gogs_password: openshift
     labs_github_ref: master
   
   tasks:
@@ -24,6 +20,7 @@
       vars:
         project_name: "{{ infra_project }}"
         nexus_image_version: 3.7.1
+        nexus_max_memory: 6Gi
       tags: nexus
 
     - import_role:
@@ -51,82 +48,73 @@
         gogs_route: "{{ gogs_hostname }}"
         gogs_image_version: 0.11.34
         gogs_admin_user: "{{ user_gogs_admin }}"
-        gogs_user: "{{ user_gogs_name }}"
         gogs_admin_password: "{{ user_gogs_password }}"
-        gogs_password: "{{ user_gogs_admin_password }}"
-        gogs_generate_user_count: "{{ generated_gogs_user_count }}"
-        gogs_generate_user_format: "{{ generated_gogs_user_format }}"
-        clean_install: true
+        gogs_user: "{{ user_gogs_test }}"
+        gogs_password: "{{ user_gogs_password }}"
+        clean_deploy: true
       tags: gogs
 
-    - name: create projects git repo for {{ user_gogs_name }} user
+    # setup git repos for test user
+    - name: create projects git repo for {{ user_gogs_test }} user
       uri:
         url: http://{{ gogs_hostname }}/api/v1/user/repos
         method: POST
-        body: '{"name": "projects", "private": false}'
+        body: '{"name": "{{ item }}", "private": false}'
         body_format: json
-        user: "{{ user_gogs_name }}"
+        user: "{{ user_gogs_test }}"
         password: "{{ user_gogs_password }}"
         status_code: 200,201
         force_basic_auth: true
         ignore_errors: true
-      tags: gogs
-
-    - name: create projects git repo for generated users
-      uri:
-        url: http://{{ gogs_hostname }}/api/v1/user/repos
-        method: POST
-        body: '{"name": "projects", "private": false}'
-        body_format: json
-        user: "{{ item }}"
-        password: "{{ user_gogs_password }}"
-        status_code: 200,201
-        force_basic_auth: true
-        ignore_errors: true
-      with_sequence: start=0 end={{ generated_gogs_user_count }} format="{{ generated_gogs_user_format }}"
-      when: generate_gogs_users > 0
-      tags: gogs
+      with_items:
+        - catalog-spring-boot
+        - web-nodejs
+      tags: 
+        - gogs
+        - test
 
     - name: create temporary git directory
       tempfile:
         state: directory
         prefix: devops-oab-git
       register: git_dir
-      tags: gogs
+      tags: 
+        - gogs
+        - test
 
     - name: unarchive labs source archive
       unarchive:
         remote_src: yes
         src: "https://github.com/openshift-labs/devops-oab-labs/archive/{{ labs_github_ref }}.zip"
         dest: "{{ git_dir.path }}"
-      tags: gogs
+      tags: 
+        - gogs
+        - test
 
-    - name: init projects git repo
+    - name: push to catalog-spring-boot git repo for user {{ user_gogs_test }}
       shell: |
-        mv {{ git_dir.path }}/devops-oab-labs-{{ labs_github_ref }}/* {{ git_dir.path }}
-        rm -rf {{ git_dir.path }}/devops-oab-labs-{{ labs_github_ref }}
-        echo "solutions/" >> {{ git_dir.path }}/.gitignore
         git init
         git add . --all
         git config user.email "rhdeveloper@labs.com"
         git config user.name "rhdeveloper"
         git commit -m "Initial add"
+        git push -f http://{{ user_gogs_test }}:{{ user_gogs_password }}@{{ gogs_hostname }}/{{ user_gogs_test }}/catalog-spring-boot.git master
       args:
-        chdir: "{{ git_dir.path }}"
-      tags: gogs
+        chdir: "{{ git_dir.path }}/devops-oab-labs-{{ labs_github_ref }}/catalog-spring-boot"
+      tags: 
+        - gogs
+        - test
 
-    - name: push projects git repo to Gogs for {{ user_gogs_name }} user
+    - name: push to web-nodejs git repo for user {{ user_gogs_test }}
       shell: |
-        git push -f http://{{ user_gogs_name }}:{{ user_gogs_password }}@{{ gogs_hostname }}/{{ user_gogs_name }}/projects.git master
+        git init
+        git add . --all
+        git config user.email "rhdeveloper@labs.com"
+        git config user.name "rhdeveloper"
+        git commit -m "Initial add"
+        git push -f http://{{ user_gogs_test }}:{{ user_gogs_password }}@{{ gogs_hostname }}/{{ user_gogs_test }}/web-nodejs.git master
       args:
-        chdir: "{{ git_dir.path }}"
-      tags: gogs
-
-    - name: push projects git repo to Gogs for generated users
-      shell: |
-        git push -f http://{{ item }}:{{ user_gogs_password }}@{{ gogs_hostname }}/{{ item }}/projects.git master
-      args:
-        chdir: "{{ git_dir.path }}"
-      with_sequence: start=0 end={{ generated_gogs_user_count }} format="{{ generated_gogs_user_format }}"
-      when: generated_gogs_user_count > 0
-      tags: gogs
+        chdir: "{{ git_dir.path }}/devops-oab-labs-{{ labs_github_ref }}/web-nodejs"
+      tags: 
+        - gogs
+        - test
