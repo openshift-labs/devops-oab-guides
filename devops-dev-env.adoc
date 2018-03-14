@@ -5,12 +5,12 @@
 # Commands Cheatsheet
 
 $ oc login 
-$ oc new-project dev{{PROJECT_SUFFIX}} --display-name="Development Environment"
+$ oc new-project dev{{PROJECT_SUFFIX}} --display-name="CoolStore DEV"
 
 
 # download code
 wget https://github.com/openshift-labs/devops-oab-labs/archive/master.zip
-unzip devops-oab-labs-master.zip
+unzip master.zip
 mv devops-oab-labs-master/* .
 rm -rf devops-oab-labs-master
 

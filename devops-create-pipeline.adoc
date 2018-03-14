@@ -10,50 +10,24 @@ oc new-app jenkins-ephemeral
 git clone {{GIT_SERVER_URL}}/{{GIT_USER}}/projects.git
 cd projects/catalog-spring-boot
 
-cat <<EOF > Jenkinsfile
-pipeline {
-  agent {
-      label 'maven'
-  }
-  stages {
-    stage('Build JAR') {
-      steps {
-        sh "mvn package"
-      }
-    }
-    stage('Build Image') {
-      steps {
-        script {
-          openshift.withCluster() {
-            sh "mkdir catalog-spring-boot/target/catalog-spring-boot"
-            sh "cp catalog-spring-boot/target/catalog-1.0-SNAPSHOT.jar catalog-spring-boot/target/catalog-spring-boot"
-            openshift.startBuild("catalog", "--from-dir=catalog-spring-boot/target/catalog-spring-boot", "--wait")
-          }
-        }
-      }
-    }
-    stage('Deploy') {
-      steps {
-        script {
-          openshift.withCluster() {
-            def dc = openshift.selector("dc", "catalog")
-            dc.rollout().latest()
-            dc.rollout().status()
-          }
-        }
-      }
-    }
-  }
-}
-EOF
+# Create build
 
 git add Jenkinsfile
 git commit -m "pipeline added"
 git push origin master
 
-
 oc new-app . --name=catalog-build --strategy=pipeline
 
+
+# Create release pipeline
+
+
+
+oc set env bc/catalog-build NEXUS_URL=http://nexus.lab-infra.svc:8081 
+oc set env bc/catalog-release NEXUS_URL=http://nexus.lab-infra.svc:8081 
+
+oc create secret generic gogs-credentials --from-literal=username=test --from-literal=password=openshift
+oc label secret gogs-credentials credential.sync.jenkins.openshift.io=true
 
 
 ----
