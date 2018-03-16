@@ -24,3 +24,6 @@ modules:
   activate:
   - devops-intro
   - devops-dev-env
+  - devops-create-pipeline
+  - devops-create-webhook
+  - devops-stage-env

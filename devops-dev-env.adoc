@@ -1,11 +1,11 @@
-## Create Deployment Environment
+## Create DEV Deployment Environment
 
 [source,shell]
 ----
 # Commands Cheatsheet
 
-$ oc login 
-$ oc new-project dev{{PROJECT_SUFFIX}} --display-name="CoolStore DEV"
+oc login 
+oc new-project dev{{PROJECT_SUFFIX}} --display-name="CoolStore DEV"
 
 
 # download code
@@ -37,12 +37,12 @@ git remote add origin {{GIT_SERVER_URL}}/{{GIT_USER}}/web-nodejs.git
 git push -u origin master
 
 # deploy catalog
-$ oc new-app -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/catalog-template.yaml \
+oc new-app -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/catalog-template.yaml \
       --param=GIT_URI={{GIT_SERVER_URL}}/{{GIT_USER}}/catalog-spring-boot.git \
       --param=MAVEN_MIRROR_URL={{NEXUS_URL}}
 
 # deploy web
-$ oc new-app -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/web-template.yaml \
+oc new-app -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/web-template.yaml \
       --param=GIT_URI={{GIT_SERVER_URL}}/{{GIT_USER}}/web-nodejs.git
 
 # Try out web route in the browser

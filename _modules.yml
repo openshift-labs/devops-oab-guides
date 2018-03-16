@@ -2,7 +2,13 @@ modules:
   devops-intro:
     name: DevOps Introduction  
   devops-dev-env:
-    name: Create Deployment Environment
+    name: Create DEV Environment
+  devops-create-pipeline:
+    name: Automate Build and Deployment
+  devops-create-webhook:
+    name: Run Pipeline on Every Change
+  devops-stage-env:
+    name: Create STAGE Environment
     
   # devops-simple-pipeline:
   #   name: Creating a Simple CI/CD Pipeline
