@@ -1,0 +1,16 @@
+## Create PROD
+
+TODO
+* Add a new pipeline for canary release
+  - creates a new deployment for the catalog with the new image version
+  - put 10% traffic of the route split on the new version
+  - pause: manual approval 
+  - manually test in the browser
+  - click on approve
+  - put 50% traffic on new version
+  - paus: manual approval
+  - manual test browser
+  - approve go live 100% traffic
+  - delete old version
+  - test again
+* If cancel, put 100% traffic back on the existing version and delete new version that was in prgoress
