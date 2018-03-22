@@ -2,7 +2,7 @@
 
 [source,shell]
 ----
-
+# TODO: move to init script to pre-create for users
 oc new-project registry{{PROJECT_SUFFIX}} --display-name="CoolStore IMAGES"
 oc new-project stage{{PROJECT_SUFFIX}} --display-name="CoolStore STAGE"
 
