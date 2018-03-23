@@ -4,12 +4,16 @@
   gather_facts: false
   run_once: true
   vars:
-    infra_project: lab-infra
+    lab_infra_project: lab-infra
     user_gogs_admin: gogs
     user_gogs_test: test
     user_gogs_password: openshift
     labs_github_ref: master
-  
+    user_count: 10
+    user_format: user%02d
+    openshift_prod_master: ''
+    openshift_prod_token: ''
+
   tasks:
     - include_role:
         name: openshift_common_facts
@@ -18,7 +22,7 @@
     - import_role:
         name: openshift_sonatype_nexus
       vars:
-        project_name: "{{ infra_project }}"
+        project_name: "{{ lab_infra_project }}"
         nexus_image_version: 3.7.1
         nexus_max_memory: 6Gi
       tags: nexus
@@ -26,7 +30,7 @@
     - import_role:
         name: openshift_workshopper
       vars:
-        project_name: "{{ infra_project }}"
+        project_name: "{{ lab_infra_project }}"
         workshopper_content_url_prefix: "https://raw.githubusercontent.com/openshift-labs/devops-oab-guides/master"
         workshopper_workshop_urls: "https://raw.githubusercontent.com/openshift-labs/devops-oab-guides/master/_devops-workshop.yml"
         workshopper_env_vars:
@@ -36,13 +40,13 @@
       tags: guides
 
     - set_fact:
-        gogs_hostname: gogs-{{ infra_project }}.{{ apps_hostname_suffix }}
+        gogs_hostname: gogs-{{ lab_infra_project }}.{{ apps_hostname_suffix }}
       tags: gogs
 
     - import_role:
         name: openshift_gogs
       vars:
-        project_name: "{{ infra_project }}"
+        project_name: "{{ lab_infra_project }}"
         project_display_name: "DevOps Workshop Infrastructure"
         project_desc: "DevOps Workshop Infrastructure"
         gogs_route: "{{ gogs_hostname }}"
@@ -53,6 +57,56 @@
         gogs_password: "{{ user_gogs_password }}"
         clean_deploy: true
       tags: gogs
+
+    # create user projects
+    - name: set openshift dev master 
+      set_fact:
+        openshift_dev_master: {{ openshift_master }}
+      when: >
+        openshift_dev_master is not defined or
+        openshift_dev_master is none or
+        openshift_dev_master|trim() == ""
+
+    - name: set openshift prod master
+      set_fact:
+        openshift_prod_master: {{ openshift_dev_master }}
+      when: >
+        openshift_prod_master is not defined or
+        openshift_prod_master is none or
+        openshift_prod_master|trim() == ""
+
+    - name: create dev,stage and prod projects for {{ user_count }} users
+      shell: |
+        oc new-project dev-{{ item }}   --display-name="CoolStore DEV"
+        oc new-project stage-{{ item }} --display-name="CoolStore STAGE"
+        oc new-project cicd-{{ item }}  --display-name="CI/CD"
+        oc new-project prod-{{ item }}  --display-name="CoolStore PROD" --server={{ openshift_prod_master }} --token={{ openshift_prod_token }}
+
+        oc policy add-role-to-user admin {{ item }} -n dev-{{ item }}
+        oc policy add-role-to-user admin {{ item }} -n stage-{{ item }}
+        oc policy add-role-to-user admin {{ item }} -n cicd-{{ item }}
+        oc policy add-role-to-user admin {{ item }} -n prod-{{ item }} --server={{ openshift_prod_master }} --token={{ openshift_prod_token }}
+
+        oc adm policy add-role-to-group admin system:serviceaccounts:cicd-{{ item }} -n dev-{{ item }}
+        oc adm policy add-role-to-group admin system:serviceaccounts:cicd-{{ item }} -n stage-{{ item }}
+      with_sequence: start=0 end={{ user_count }} format="{{ user_format }}"
+      when: user_count > 0
+
+    - name: create dev,stage and prod projects
+      shell: |
+        oc new-project dev --display-name="CoolStore DEV"
+        oc new-project stage --display-name="CoolStore STAGE"
+        oc new-project cicd --display-name="CI/CD"
+        oc new-project prod --display-name="CoolStore PROD" --server={{ openshift_prod_master }} --token={{ openshift_prod_token }}
+
+        oc policy add-role-to-user admin {{ item }} -n dev
+        oc policy add-role-to-user admin {{ item }} -n stage
+        oc policy add-role-to-user admin {{ item }} -n cicd
+        oc policy add-role-to-user admin {{ item }} -n prod --server={{ openshift_prod_master }} --token={{ openshift_prod_token }}
+
+        oc adm policy add-role-to-group admin system:serviceaccounts:cicd -n dev
+        oc adm policy add-role-to-group admin system:serviceaccounts:cicd -n stage
+      when: user_count <= 0
 
     # setup git repos for test user
     - name: create projects git repo for {{ user_gogs_test }} user
