@@ -5,7 +5,8 @@
 # Commands Cheatsheet
 
 oc login 
-oc new-project dev{{PROJECT_SUFFIX}} --display-name="CoolStore DEV"
+# oc new-project dev{{PROJECT_SUFFIX}} --display-name="CoolStore DEV"
+oc project dev{{PROJECT_SUFFIX}}
 
 
 # download code
@@ -37,13 +38,19 @@ git remote add origin {{GIT_SERVER_URL}}/{{GIT_USER}}/web-nodejs.git
 git push -u origin master
 
 # deploy catalog
+oc create -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/catalog-is.yaml -n cicd{{PROJECT_SUFFIX}}
 oc new-app -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/catalog-template.yaml \
       --param=GIT_URI={{GIT_SERVER_URL}}/{{GIT_USER}}/catalog-spring-boot.git \
-      --param=MAVEN_MIRROR_URL={{NEXUS_URL}}
+      --param=MAVEN_MIRROR_URL={{NEXUS_URL}} \
+      --param=IMAGE_NAMESPACE=cicd{{PROJECT_SUFFIX}} \
+      -n dev{{PROJECT_SUFFIX}}
 
 # deploy web
+oc create -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/web-is.yaml -n cicd{{PROJECT_SUFFIX}}
 oc new-app -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/web-template.yaml \
-      --param=GIT_URI={{GIT_SERVER_URL}}/{{GIT_USER}}/web-nodejs.git
+      --param=GIT_URI={{GIT_SERVER_URL}}/{{GIT_USER}}/web-nodejs.git \
+      --param=IMAGE_NAMESPACE=cicd{{PROJECT_SUFFIX}} \
+      -n dev{{PROJECT_SUFFIX}}
 
 # Try out web route in the browser
 

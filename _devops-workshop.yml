@@ -16,14 +16,16 @@ vars:
   GIT_USER: "userXX"
   GIT_PASSWORD: "openshift3"
   PROJECT_SUFFIX: "XX"
-  CART_ROUTE: "CART-ROUTE"
-  CART_BLUE_ROUTE: "CART-BLUE-ROUTE"
-  CART_GREEN_ROUTE: "CART-GREEN-ROUTE"
+  PROJECTS_EXIST: "true"
+
 
 modules:
   activate:
-  - devops-intro
-  - devops-dev-env
-  - devops-create-pipeline
-  - devops-create-webhook
-  - devops-stage-env
+  - 01-devops-intro
+  - 02-create-env
+  - 03-add-pipeline
+  - 04-add-webhook
+  - 05-stage-env
+  - 06-automate-extrnal-db
+  - 07-release-prod
+  - 08-advanced-deploy

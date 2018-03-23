@@ -4,6 +4,8 @@
 ----
 
 oc set triggers dc/catalog --manual
+
+oc project cicd{{PROJECT_SUFFIX}}
 oc new-app jenkins-ephemeral
 
 git clone {{GIT_SERVER_URL}}/{{GIT_USER}}/projects.git
@@ -30,7 +32,9 @@ pipeline {
       steps {
         script {
           openshift.withCluster() {
-            openshift.startBuild("catalog", "--from-file=target/catalog-${readMavenPom().version}.jar", "--wait")
+            openshift.withProject(env.DEV_PROJECT) {
+              openshift.startBuild("catalog", "--from-file=target/catalog-${readMavenPom().version}.jar", "--wait")
+            }
           }
         }
       }
@@ -39,13 +43,15 @@ pipeline {
       steps {
         script {
           openshift.withCluster() {
-            def result, dc = openshift.selector("dc", "catalog")
-            dc.rollout().latest()
-            timeout(10) {
-                result = dc.rollout().status("-w")
-            }
-            if (result.status != 0) {
-                error(result.err)
+            openshift.withProject(env.DEV_PROJECT) {
+              def result, dc = openshift.selector("dc", "catalog")
+              dc.rollout().latest()
+              timeout(10) {
+                  result = dc.rollout().status("-w")
+              }
+              if (result.status != 0) {
+                  error(result.err)
+              }
             }
           }
         }
@@ -60,8 +66,7 @@ git commit -m "build pipeline added"
 git push origin master
 
 oc new-app . --name=catalog-build --strategy=pipeline
-oc set env bc/catalog-build NEXUS_URL=http://nexus.lab-infra.svc:8081
-
+oc set env bc/catalog-build NEXUS_URL=http://nexus.lab-infra.svc:8081 DEV_PROJECT=dev{{PROJECT_SUFFIX}} 
 ----
 
 

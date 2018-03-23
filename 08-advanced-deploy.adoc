@@ -13,4 +13,4 @@ TODO
   - approve go live 100% traffic
   - delete old version
   - test again
-* If cancel, put 100% traffic back on the existing version and delete new version that was in prgoress
+* If cancel, put 100% traffic back on the existing version and delete new version that was in progress

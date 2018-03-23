@@ -3,14 +3,13 @@
 [source,shell]
 ----
 # TODO: move to init script to pre-create for users
-oc new-project registry{{PROJECT_SUFFIX}} --display-name="CoolStore IMAGES"
-oc new-project stage{{PROJECT_SUFFIX}} --display-name="CoolStore STAGE"
+# oc new-project registry{{PROJECT_SUFFIX}} --display-name="CoolStore IMAGES"
+# oc new-project stage{{PROJECT_SUFFIX}} --display-name="CoolStore STAGE"
+# oc adm policy add-role-to-group admin system:serviceaccounts:dev{{PROJECT_SUFFIX}} -n stage{{PROJECT_SUFFIX}}
+# oc adm policy add-role-to-group admin system:serviceaccounts:dev{{PROJECT_SUFFIX}} -n registry{{PROJECT_SUFFIX}}
+# oc adm policy add-role-to-group system:image-puller system:serviceaccounts:stage{{PROJECT_SUFFIX}} -n registry{{PROJECT_SUFFIX}}
 
-oc adm policy add-role-to-group admin system:serviceaccounts:dev{{PROJECT_SUFFIX}} -n stage{{PROJECT_SUFFIX}}
-oc adm policy add-role-to-group admin system:serviceaccounts:dev{{PROJECT_SUFFIX}} -n registry{{PROJECT_SUFFIX}}
-oc adm policy add-role-to-group system:image-puller system:serviceaccounts:stage{{PROJECT_SUFFIX}} -n registry{{PROJECT_SUFFIX}}
-
-oc project dev{{PROJECT_SUFFIX}}
+oc project cicd{{PROJECT_SUFFIX}}
 
 cd projects/catalog-spring-boot
 
@@ -50,9 +49,11 @@ pipeline {
       steps {
         script {
           openshift.withCluster() {
-            echo "Releasing version ${releaseTag}-${commitId}"
-            openshift.tag("catalog:latest", "${env.REGISTRY_PROJECT}/catalog:${releaseTag}-${commitId}")
-            openshift.tag("web-ui:latest", "${env.REGISTRY_PROJECT}/web-ui:${releaseTag}-${commitId}")
+            openshift.withProject(env.IMAGE_PROJECT) {
+              echo "Releasing version ${releaseTag}-${commitId}"
+              openshift.tag("catalog:latest", "${env.REGISTRY_PROJECT}/catalog:${releaseTag}-${commitId}")
+              openshift.tag("web-ui:latest", "${env.REGISTRY_PROJECT}/web-ui:${releaseTag}-${commitId}")
+            }
           }
         }
       }
@@ -75,7 +76,7 @@ pipeline {
             openshift.withProject(env.STAGE_PROJECT) {
               def template = 'https://raw.githubusercontent.com/siamaksade/devops-oab-labs/master/openshift/coolstore-template.yaml'
               openshift.apply(
-                openshift.process("-f", template, "-p", "IMAGE_VERSION=${releaseTag}", "-p", "IMAGE_NAMESPACE=${env.REGISTRY_PROJECT}")
+                openshift.process("-f", template, "-p", "IMAGE_VERSION=${releaseTag}", "-p", "IMAGE_NAMESPACE=${env.IMAGE_PROJECT}")
               )
             }
           }
@@ -93,7 +94,9 @@ git push origin master
 
 oc new-app . --name=catalog-release --strategy=pipeline
 oc patch bc catalog-release  -p '{"spec":{"strategy":{"jenkinsPipelineStrategy":{"jenkinsfilePath":"Jenkinsfile.release"}}}}'
-oc set env bc/catalog-release NEXUS_URL=http://nexus.lab-infra.svc:8081 STAGE_PROJECT=stage{{PROJECT_SUFFIX}} REGISTRY_PROJECT=registry{{PROJECT_SUFFIX}}
+oc set env bc/catalog-release NEXUS_URL=http://nexus.lab-infra.svc:8081 \
+                            STAGE_PROJECT=stage{{PROJECT_SUFFIX}} \
+                            IMAGE_PROJECT=cicd{{PROJECT_SUFFIX}}
 
 oc create secret generic gogs-credentials --from-literal=username={{GIT_USER}} --from-literal=password={{GIT_PASSWORD}}
 oc label secret gogs-credentials credential.sync.jenkins.openshift.io=true
