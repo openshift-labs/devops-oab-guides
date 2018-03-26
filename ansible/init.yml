@@ -19,6 +19,13 @@
         name: openshift_common_facts
       tags: always
 
+    - name: create lab infra project
+      shell: "oc new-project {{ lab_infra_project }} --display-name='Lab Infra'"
+      ignore_errors: true
+      tags: always
+
+
+    # deploy nexus
     - import_role:
         name: openshift_sonatype_nexus
       vars:
@@ -27,21 +34,10 @@
         nexus_max_memory: 6Gi
       tags: nexus
 
-    - import_role:
-        name: openshift_workshopper
-      vars:
-        project_name: "{{ lab_infra_project }}"
-        workshopper_content_url_prefix: "https://raw.githubusercontent.com/openshift-labs/devops-oab-guides/master"
-        workshopper_workshop_urls: "https://raw.githubusercontent.com/openshift-labs/devops-oab-guides/master/_devops-workshop.yml"
-        workshopper_env_vars:
-          PROJECT_SUFFIX: ""
-          GOGS_URL: http://{{ gogs_hostname }}
-          OPENSHIFT_DOCS_BASE: "https://docs.openshift.com/container-platform/3.7"
-      tags: guides
-
+    # deploy gogs
     - set_fact:
         gogs_hostname: gogs-{{ lab_infra_project }}.{{ apps_hostname_suffix }}
-      tags: gogs
+      tags: always
 
     - import_role:
         name: openshift_gogs
@@ -58,23 +54,19 @@
         clean_deploy: true
       tags: gogs
 
+    - import_role:
+        name: openshift_workshopper
+      vars:
+        project_name: "{{ lab_infra_project }}"
+        workshopper_content_url_prefix: "https://raw.githubusercontent.com/openshift-labs/devops-oab-guides/master"
+        workshopper_workshop_urls: "https://raw.githubusercontent.com/openshift-labs/devops-oab-guides/master/_devops-workshop.yml"
+        workshopper_env_vars:
+          PROJECT_SUFFIX: ""
+          GOGS_URL: http://{{ gogs_hostname }}
+          OPENSHIFT_DOCS_BASE: "https://docs.openshift.com/container-platform/3.7"
+      tags: guides
+
     # create user projects
-    - name: set openshift dev master 
-      set_fact:
-        openshift_dev_master: {{ openshift_master }}
-      when: >
-        openshift_dev_master is not defined or
-        openshift_dev_master is none or
-        openshift_dev_master|trim() == ""
-
-    - name: set openshift prod master
-      set_fact:
-        openshift_prod_master: {{ openshift_dev_master }}
-      when: >
-        openshift_prod_master is not defined or
-        openshift_prod_master is none or
-        openshift_prod_master|trim() == ""
-
     - name: create dev,stage and prod projects for {{ user_count }} users
       shell: |
         oc new-project dev-{{ item }}   --display-name="CoolStore DEV"
@@ -89,8 +81,10 @@
 
         oc adm policy add-role-to-group admin system:serviceaccounts:cicd-{{ item }} -n dev-{{ item }}
         oc adm policy add-role-to-group admin system:serviceaccounts:cicd-{{ item }} -n stage-{{ item }}
-      with_sequence: start=0 end={{ user_count }} format="{{ user_format }}"
-      when: user_count > 0
+      with_sequence: start=1 end={{ user_count }} format="{{ user_format }}"
+      when: user_count > 1
+      ignore_errors: true
+      tags: user_projects
 
     - name: create dev,stage and prod projects
       shell: |
@@ -106,7 +100,9 @@
 
         oc adm policy add-role-to-group admin system:serviceaccounts:cicd -n dev
         oc adm policy add-role-to-group admin system:serviceaccounts:cicd -n stage
-      when: user_count <= 0
+      when: user_count <= 1
+      ignore_errors: true
+      tags: user_projects
 
     # setup git repos for test user
     - name: create projects git repo for {{ user_gogs_test }} user

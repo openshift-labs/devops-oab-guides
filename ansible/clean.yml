@@ -1,0 +1,38 @@
+---
+- name: Undeploy Infra Components for DevOps with OpenShift and OpenShift Ansible Broker Workshop
+  hosts: localhost
+  gather_facts: false
+  run_once: true
+  vars:
+    lab_infra_project: lab-infra
+    user_count: 10
+    user_format: user%02d
+    openshift_prod_master: ''
+    openshift_prod_token: ''
+
+  tasks:
+    - name: delete lab infra project
+      shell: "oc delete project {{ lab_infra_project }}"
+      ignore_errors: true
+      tags: infra_project
+
+    - name: delete dev,stage and prod projects for {{ user_count }} users
+      shell: |
+        oc delete project dev-{{ item }}
+        oc delete project stage-{{ item }}
+        oc delete project cicd-{{ item }}
+        oc delete project prod-{{ item }} --server={{ openshift_prod_master }} --token={{ openshift_prod_token }}
+      with_sequence: start=0 end={{ user_count }} format="{{ user_format }}"
+      ignore_errors: true
+      when: user_count > 0
+      tags: user_projects
+
+    - name: delete dev,stage and prod projects
+      shell: |
+        oc delete project dev
+        oc delete project stage
+        oc delete project cicd
+        oc delete project prod --server={{ openshift_prod_master }} --token={{ openshift_prod_token }}
+      when: user_count <= 0
+      ignore_errors: true
+      tags: user_projects
