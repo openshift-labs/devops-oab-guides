@@ -3,15 +3,15 @@
 [source,shell]
 ----
 
-oc set triggers dc/catalog --manual
+oc set triggers dc/catalog --manual -n dev{{PROJECT_SUFFIX}}
 
 oc project cicd{{PROJECT_SUFFIX}}
-oc new-app jenkins-ephemeral
+oc new-app jenkins-persistent
 
-git clone {{GIT_SERVER_URL}}/{{GIT_USER}}/projects.git
-cd projects/catalog-spring-boot
+git clone {{GIT_SERVER_URL}}/{{GIT_USER}}/catalog-spring-boot.git
+cd catalog-spring-boot
 
-cat <<EOF > Jenkinsfile.release
+cat <<'EOF' > Jenkinsfile
 pipeline {
   agent {
       label 'maven'

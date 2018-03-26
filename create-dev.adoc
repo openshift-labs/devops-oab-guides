@@ -5,7 +5,6 @@
 # Commands Cheatsheet
 
 oc login 
-# oc new-project dev{{PROJECT_SUFFIX}} --display-name="CoolStore DEV"
 oc project dev{{PROJECT_SUFFIX}}
 
 
@@ -37,8 +36,11 @@ git commit -m "initial add"
 git remote add origin {{GIT_SERVER_URL}}/{{GIT_USER}}/web-nodejs.git
 git push -u origin master
 
-# deploy catalog
+# create imatestreams 
 oc create -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/catalog-is.yaml -n cicd{{PROJECT_SUFFIX}}
+oc create -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/web-is.yaml -n cicd{{PROJECT_SUFFIX}}
+
+# deploy catalog to build images and push to cicd
 oc new-app -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/catalog-template.yaml \
       --param=GIT_URI={{GIT_SERVER_URL}}/{{GIT_USER}}/catalog-spring-boot.git \
       --param=MAVEN_MIRROR_URL={{NEXUS_URL}} \
@@ -46,7 +48,6 @@ oc new-app -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/m
       -n dev{{PROJECT_SUFFIX}}
 
 # deploy web
-oc create -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/web-is.yaml -n cicd{{PROJECT_SUFFIX}}
 oc new-app -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/web-template.yaml \
       --param=GIT_URI={{GIT_SERVER_URL}}/{{GIT_USER}}/web-nodejs.git \
       --param=IMAGE_NAMESPACE=cicd{{PROJECT_SUFFIX}} \

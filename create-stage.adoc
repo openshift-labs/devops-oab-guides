@@ -2,21 +2,11 @@
 
 [source,shell]
 ----
-# TODO: move to init script to pre-create for users
-# oc new-project registry{{PROJECT_SUFFIX}} --display-name="CoolStore IMAGES"
-# oc new-project stage{{PROJECT_SUFFIX}} --display-name="CoolStore STAGE"
-# oc adm policy add-role-to-group admin system:serviceaccounts:dev{{PROJECT_SUFFIX}} -n stage{{PROJECT_SUFFIX}}
-# oc adm policy add-role-to-group admin system:serviceaccounts:dev{{PROJECT_SUFFIX}} -n registry{{PROJECT_SUFFIX}}
-# oc adm policy add-role-to-group system:image-puller system:serviceaccounts:stage{{PROJECT_SUFFIX}} -n registry{{PROJECT_SUFFIX}}
-
-oc project cicd{{PROJECT_SUFFIX}}
-
-cd projects/catalog-spring-boot
 
 # Create build
 
-cat <<EOF > Jenkinsfile.release
-def releaseTag,commitId
+cat <<'EOF' > Jenkinsfile.release
+def releaseTag
 
 pipeline {
   agent {
@@ -31,7 +21,7 @@ pipeline {
         
         script {
            commitId = sh(returnStdout: true, script: "git rev-parse --short HEAD").trim()
-           releaseTag = readMavenPom().getVersion().replace("-SNAPSHOT", "")
+           releaseTag = readMavenPom().getVersion().replace("-SNAPSHOT", "") + '-' + commitId
         }
       }
     }
@@ -40,7 +30,7 @@ pipeline {
         SCM_GIT_URL = sh(returnStdout: true, script: 'git config remote.origin.url').trim()
       }
       steps {
-        withCredentials([usernamePassword(credentialsId: 'dev-gogs-credentials', usernameVariable: 'GOGS_USERNAME', passwordVariable: 'GOGS_PASSWORD')]) {
+        withCredentials([usernamePassword(credentialsId: "${env.CICD_PROJECT}-gogs-credentials", usernameVariable: "GOGS_USERNAME", passwordVariable: "GOGS_PASSWORD")]) {
 	      sh "mvn --batch-mode release:clean release:prepare release:perform -s .settings.xml"
         }
       }
@@ -49,21 +39,21 @@ pipeline {
       steps {
         script {
           openshift.withCluster() {
-            openshift.withProject(env.IMAGE_PROJECT) {
-              echo "Releasing version ${releaseTag}-${commitId}"
-              openshift.tag("catalog:latest", "${env.REGISTRY_PROJECT}/catalog:${releaseTag}-${commitId}")
-              openshift.tag("web-ui:latest", "${env.REGISTRY_PROJECT}/web-ui:${releaseTag}-${commitId}")
+            openshift.withProject(env.CICD_PROJECT) {
+              echo "Releasing version ${releaseTag}"
+              openshift.tag("${env.CICD_PROJECT}/catalog:latest", "${env.CICD_PROJECT}/catalog:${releaseTag}")
+              openshift.tag("${env.CICD_PROJECT}/web-ui:latest", "${env.CICD_PROJECT}/web-ui:${releaseTag}")
             }
           }
         }
       }
     }    
-    stage('Clean-up STAGE') {
+    stage('Tear-down STAGE') {
       steps {
         script {
           openshift.withCluster() {
             openshift.withProject(env.STAGE_PROJECT) {
-              openshift.raw('all,cm,pvc --all')
+              openshift.raw('delete all,cm,pvc --all')
             }
           }
         }
@@ -74,9 +64,9 @@ pipeline {
         script {
           openshift.withCluster() {
             openshift.withProject(env.STAGE_PROJECT) {
-              def template = 'https://raw.githubusercontent.com/siamaksade/devops-oab-labs/master/openshift/coolstore-template.yaml'
+              def template = 'https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/coolstore-template.yaml'
               openshift.apply(
-                openshift.process("-f", template, "-p", "IMAGE_VERSION=${releaseTag}", "-p", "IMAGE_NAMESPACE=${env.IMAGE_PROJECT}")
+                openshift.process("-f", template, "-p", "IMAGE_VERSION=${releaseTag}", "-p", "IMAGE_NAMESPACE=${env.CICD_PROJECT}")
               )
             }
           }
@@ -96,8 +86,9 @@ oc new-app . --name=catalog-release --strategy=pipeline
 oc patch bc catalog-release  -p '{"spec":{"strategy":{"jenkinsPipelineStrategy":{"jenkinsfilePath":"Jenkinsfile.release"}}}}'
 oc set env bc/catalog-release NEXUS_URL=http://nexus.lab-infra.svc:8081 \
                             STAGE_PROJECT=stage{{PROJECT_SUFFIX}} \
-                            IMAGE_PROJECT=cicd{{PROJECT_SUFFIX}}
+                            CICD_PROJECT=cicd{{PROJECT_SUFFIX}}
 
 oc create secret generic gogs-credentials --from-literal=username={{GIT_USER}} --from-literal=password={{GIT_PASSWORD}}
+oc secrets new-basicauth gogs-credentials --username={{GIT_USER}} --password={{GIT_PASSWORD}}
 oc label secret gogs-credentials credential.sync.jenkins.openshift.io=true
 ----
