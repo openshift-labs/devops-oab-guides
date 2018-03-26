@@ -179,11 +179,14 @@ objects:
 
       modules:
         activate:
-          - devops-intro
-          - devops-dev-env
-          - devops-create-pipeline
-          - devops-create-webhook
-          - devops-stage-env
+        - devops-intro
+        - create-dev
+        - add-pipeline
+        - add-webhook
+        - create-stage
+        - automate-extrnal-db
+        - release-prod
+        - advanced-deploy
   kind: ConfigMap
   metadata:
     name: ${APPLICATION_NAME}
