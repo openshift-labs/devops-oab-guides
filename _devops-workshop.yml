@@ -21,11 +21,11 @@ vars:
 
 modules:
   activate:
-  - 01-devops-intro
-  - 02-create-env
-  - 03-add-pipeline
-  - 04-add-webhook
-  - 05-stage-env
-  - 06-automate-extrnal-db
-  - 07-release-prod
-  - 08-advanced-deploy
+  - devops-intro
+  - create-dev
+  - add-pipeline
+  - add-webhook
+  - create-stage
+  - automate-extrnal-db
+  - release-prod
+  - advanced-deploy

@@ -1,19 +1,19 @@
 modules:
-  01-devops-intro:
+  devops-intro:
     name: DevOps Introduction  
-  02-create-dev:
+  create-dev:
     name: Create DEV Environment
-  03-add-pipeline:
+  add-pipeline:
     name: Automate Build and Deployment
-  04-add-webhook:
+  add-webhook:
     name: Run Pipeline on Every Change
-  05-create-stage:
+  create-stage:
     name: Create STAGE Environment
-  06-automate-extrnal-db:
-    name: Automate Provisoning External Databases
-  07-release-prod:
+  automate-extrnal-db:
+    name: Provisoning External Databases
+  release-prod:
     name: Promote Builds to Production
-  08-advanced-deploy:
+  advanced-deploy:
     name: Advanced Zerodowntime Deploy
   # devops-simple-pipeline:
   #   name: Creating a Simple CI/CD Pipeline
