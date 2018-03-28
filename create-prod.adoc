@@ -7,22 +7,21 @@
 oc create secret generic prod-credentials --from-literal=username={{PROD_USERNAME}} --from-literal=password={{PROD_TOKEN}}
 oc label secret prod-credentials credential.sync.jenkins.openshift.io=true
 
-cat <<'EOF' > Jenkinsfile.prod
-def namespace, releaseTag, prodCluster, prodProject, prodUser, prodToken
+cat <<'EOF' > Jenkinsfile.create-prod
+def namespace, releaseTag, prodCluster, prodProject, prodToken
 
 pipeline {
   agent {
       label 'skopeo'
   }
   stages {
-    stage('Select PROD Version') {
+    stage('Choose Release Version') {
       steps {
         script {
           openshift.withCluster() {
             namespace = openshift.project()
-            prodCluster = env.PROD_CLUSTER.replace("https://","insecure://")
+            prodCluster = env.PROD_MASTER.replace("https://","insecure://")
             withCredentials([usernamePassword(credentialsId: "${namespace}-prod-credentials", usernameVariable: "PROD_USER", passwordVariable: "PROD_TOKEN")]) {
-              prodUser = env.PROD_USER
               prodToken = env.PROD_TOKEN
             }
 
@@ -85,13 +84,13 @@ pipeline {
 }
 EOF
 
-git add Jenkinsfile.prod
+git add Jenkinsfile.create-prod
 git commit -m "create prod pipeline added"
 git push origin master
 
 oc new-app . --name=coolstore-create-prod --strategy=pipeline
-oc patch bc coolstore-create-prod  -p '{"spec":{"strategy":{"jenkinsPipelineStrategy":{"jenkinsfilePath":"Jenkinsfile.prod"}}}}'
-oc set env bc/coolstore-create-prod PROD_REGISTRY={{?}} PROD_CLUSTER={{?}} 
+oc patch bc coolstore-create-prod  -p '{"spec":{"strategy":{"jenkinsPipelineStrategy":{"jenkinsfilePath":"Jenkinsfile.create-prod"}}}}'
+oc set env bc/coolstore-create-prod PROD_PROJECT=prod{{PROJECT_SUFFIX}} PROD_REGISTRY={{PROD_CLUSTER_REGISTRY}} PROD_MASTER={{PROD_CLUSTER_URL}} 
 
 ----
 

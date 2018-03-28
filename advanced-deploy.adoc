@@ -1,4 +1,135 @@
-## Create PROD
+## Zero-downtime Deployments in Production
+
+[source,shell]
+----
+
+cat <<'EOF' > Jenkinsfile.catalog-prod
+def namespace, releaseTag, prodCluster, prodToken, activeSvc, canarySvc
+
+pipeline {
+  agent {
+      label 'skopeo'
+  }
+  stages {
+    stage('Choose Release Version') {
+      steps {
+        script {
+          openshift.withCluster() {
+            namespace = openshift.project()
+            prodCluster = env.PROD_MASTER.replace("https://","insecure://")
+            withCredentials([usernamePassword(credentialsId: "${namespace}-prod-credentials", usernameVariable: "PROD_USER", passwordVariable: "PROD_TOKEN")]) {
+              prodToken = env.PROD_TOKEN
+            }
+            def tags = openshift.selector("istag").objects().collect { it.metadata.name }.findAll { it.startsWith 'catalog:' }.collect { it.replaceAll(/catalog:(.*)/, "\$1") }.sort()
+            timeout(5) {
+              releaseTag = input(
+                ok: "Deploy",
+                message: "Enter release version to promote to PROD",
+                parameters: [
+                  choice(choices: tags.join('\n'), description: '', name: 'Release Version')
+                ]
+              )
+            }
+          }
+        }
+      }
+    }
+    stage('Push Image to PROD') {
+      steps {
+        script {
+          openshift.withCluster() {
+            def srcCatalogRef = openshift.selector("istag", "catalog:${releaseTag}").object().image.dockerImageReference
+            def destCatalogRef = "${env.PROD_REGISTRY}/${env.PROD_PROJECT}/catalog:${releaseTag}"
+            def srcToken = readFile "/run/secrets/kubernetes.io/serviceaccount/token"
+            sh "skopeo copy docker://${srcCatalogRef} docker://${destCatalogRef} --src-creds openshift:${srcToken} --dest-creds openshift:${prodToken} --src-tls-verify=false --dest-tls-verify=false"
+          }
+        }
+      }
+    }
+    stage('Deploy Canary 10%') {
+      steps {
+        script {
+          openshift.withCluster(prodCluster, prodToken) {
+            openshift.withProject(env.PROD_PROJECT) {
+              activeSvc = openshift.selector("route", "catalog").object().spec.to.name
+              def suffix = (activeSvc ==~ /catalog-(\d+)/) ? (activeSvc.replaceAll(/catalog-(\d+)/, '$1') as int) + 1 : "1"
+              canarySvc = "catalog-${suffix}"
+
+              def template = 'https://raw.githubusercontent.com/siamaksade/devops-oab-labs/master/openshift/catalog-deployment-template.yaml'
+              openshift.apply(
+                openshift.process("-f", template, "-p", "IMAGE_VERSION=${releaseTag}", "-p", "APP_NAME=${canarySvc}", "-l", "deployment=${canarySvc}")
+              )
+              openshift.set("route-backends", "catalog", "${activeSvc}=90%", "${canarySvc}=10%")
+            }
+          }
+        }
+      }
+    }
+    stage('Grow Canary 50%') {
+      steps {
+        timeout(time:15, unit:'MINUTES') {
+            input message: "Send 50% of live traffic to new release?", ok: "Approve"
+        }
+        script {
+          openshift.withCluster(prodCluster, prodToken) {
+            openshift.withProject(env.PROD_PROJECT) {
+              openshift.set("route-backends", "catalog", "${activeSvc}=50%", "${canarySvc}=50%")
+            }
+          }
+        }
+      }
+    }
+    stage('Rollout 100%') {
+      steps {
+        timeout(time:15, unit:'MINUTES') {
+            input message: "Send 100% of live traffic to the new release?", ok: "Approve"
+        }
+        script {
+          openshift.withCluster(prodCluster, prodToken) {
+            openshift.withProject(env.PROD_PROJECT) {
+              openshift.set("route-backends", "catalog", "${canarySvc}=100%")
+              openshift.selector(["dc/${activeSvc}", "svc/${activeSvc}"]).delete()
+            }
+          }
+        }
+      }
+    }
+  }
+  post { 
+    aborted {
+      script {
+        openshift.withCluster(prodCluster, prodToken) {
+          openshift.withProject(env.PROD_PROJECT) {
+            echo "Rolling back to current release ${activeSvc} and deleting the canary"
+            openshift.set("route-backends", "catalog", "${activeSvc}=100%")
+            openshift.selector(["dc/${canarySvc}", "svc/${canarySvc}"]).delete()
+          }
+        }
+      }
+    }
+    failure { 
+      script {
+        openshift.withCluster(prodCluster, prodToken) {
+          openshift.withProject(env.PROD_PROJECT) {
+            echo "Rolling back to current release ${activeSvc} and deleting the canary"
+            openshift.set("route-backends", "catalog", "${activeSvc}=100%")
+            openshift.selector(["dc/${canarySvc}", "svc/${canarySvc}"]).delete()
+          }
+        }
+      }
+    }
+  }
+}
+EOF
+
+git add Jenkinsfile.catalog-prod
+git commit -m "canary prod pipeline added"
+git push origin master
+
+oc new-app . --name=catalog-deploy-prod --strategy=pipeline
+oc patch bc catalog-deploy-prod  -p '{"spec":{"strategy":{"jenkinsPipelineStrategy":{"jenkinsfilePath":"Jenkinsfile.catalog-prod"}}}}'
+oc set env bc/catalog-deploy-prod PROD_PROJECT=prod{{PROJECT_SUFFIX}} PROD_REGISTRY={{PROD_CLUSTER_REGISTRY}} PROD_MASTER={{PROD_CLUSTER_URL}} 
+
 
 TODO
 * Add a new pipeline for canary release
