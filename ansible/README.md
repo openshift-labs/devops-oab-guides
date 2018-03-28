@@ -21,9 +21,7 @@ Playbook Variables
 |`labs_github_ref`      | `master`      | GitHub branch to user for lab code https://github.com/openshift-labs/devops-oab-labs.git |
 |`user_count`           | 10            | Number of users for generating DEV, STAGE and PROD projects |
 |`user_format`          | `user%02d`    | [printf style format](https://en.wikipedia.org/wiki/Printf_format_string) for OpenShift users that __already exist__ in the cluster |
-|`openshift_prod_master`| -             | Master url for PROD, if using a separate cluster for PROD |
-|`openshift_prod_token` | -             | Auth token for PROD, if using a separate cluster for PROD |
-
+|`create_prod`          | true          | Create the PROD project. If set false, not PROD project will be created |
 
 How To Use
 ------------
@@ -36,7 +34,5 @@ ansible-playbook init.yml -e "user_count=50"
 If using a separate DEV and PROD OpenShift clusters in the labs:
 ```
 ansible-galaxy install -r requirements.yml
-ansible-playbook init.yml -e "user_count=50" \
-                          -e "openshift_prod_master=http://prod.myopenshift.com" \
-                          -e "openshift_prod_token=..."
+ansible-playbook init.yml -e "user_count=50" 
 ```

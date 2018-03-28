@@ -11,8 +11,7 @@
     labs_github_ref: master
     user_count: 10
     user_format: user%02d
-    openshift_prod_master: ''
-    openshift_prod_token: ''
+    create_prod: true
 
   tasks:
     - include_role:
@@ -23,7 +22,6 @@
       shell: "oc new-project {{ lab_infra_project }} --display-name='Lab Infra'"
       ignore_errors: true
       tags: always
-
 
     # deploy nexus
     - import_role:
@@ -87,39 +85,15 @@
       ignore_errors: true
       tags: user_projects
 
-    - name: create prod,stage and prod projects for {{ user_count }} users
-      shell: |
-        oc new-project prod-{{ item }}  --display-name="CoolStore PROD" --server={{ openshift_prod_master }} --token={{ openshift_prod_token }}
-        oc policy add-role-to-user admin {{ item }} -n prod-{{ item }} --server={{ openshift_prod_master }} --token={{ openshift_prod_token }}
-      with_sequence: start=1 end={{ user_count|int }} format="{{ user_format }}"
-      when: user_count|int > 1
-      ignore_errors: true
-      tags: user_projects
-
-    - name: create prod project on prod cluster for {{ user_count }} users
-      shell: |
-        oc new-project prod-{{ item }} --display-name="CoolStore PROD" --server={{ openshift_prod_master }} --token={{ openshift_prod_token }}
-        oc policy add-role-to-user admin {{ item }} -n prod-{{ item }} --server={{ openshift_prod_master }} --token={{ openshift_prod_token }}
-      with_sequence: start=1 end={{ user_count|int }} format="{{ user_format }}"
-      when: 
-        - user_count|int > 1
-        - openshift_prod_master is defined
-        - openshift_prod_master is not none
-        - openshift_prod_master|trim() != ""
-      ignore_errors: true
-      tags: user_projects
-
-    - name: create prod project on same cluster for {{ user_count }} users
+    - name: create prod project for {{ user_count }} users
       shell: |
         oc new-project prod-{{ item }} --display-name="CoolStore PROD"
         oc policy add-role-to-user admin {{ item }} -n prod-{{ item }}
         oc adm policy add-role-to-group system:image-puller system:serviceaccounts:prod-{{ item }} -n cicd-{{ item }}
       with_sequence: start=1 end={{ user_count|int }} format="{{ user_format }}"
-      when: >
-        user_count|int > 1 and
-          (openshift_prod_master is not defined or
-           openshift_prod_master is none or
-           openshift_prod_master|trim() == "")
+      when: 
+        - user_count|int > 1 
+        - create_prod|bool
       ignore_errors: true
       tags: user_projects
 
@@ -138,27 +112,14 @@
       ignore_errors: true
       tags: user_projects
 
-    - name: create prod project on prod cluster
-      shell: |
-        oc new-project prod --display-name="CoolStore PROD" --server={{ openshift_prod_master }} --token={{ openshift_prod_token }}
-      when: 
-        - user_count|int <= 1
-        - openshift_prod_master is defined
-        - openshift_prod_master is not none
-        - openshift_prod_master|trim() != ""
-      ignore_errors: true
-      tags: user_projects
-
     - name: create prod project on same cluster
       shell: |
         oc new-project prod --display-name="CoolStore PROD"
         oc adm policy add-role-to-group admin system:serviceaccounts:cicd -n prod
         oc adm policy add-role-to-group system:image-puller system:serviceaccounts:prod -n cicd
-      when: >
-        user_count|int <= 1 and
-          (openshift_prod_master is not defined or
-           openshift_prod_master is none or
-           openshift_prod_master|trim() == "")
+      when: 
+        - user_count|int <= 1 
+        - create_prod|bool
       ignore_errors: true
       tags: user_projects
 
