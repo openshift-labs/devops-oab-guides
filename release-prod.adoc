@@ -1,9 +1,0 @@
-## Create PROD
-
-TODO
-* Project already exists on Prod cluster
-* Deploy MySQL APB (Cloud) and initialise data
-* Create a pipeline to pull images into the Prod cluster and deploy CoolStore pods
-* The pipeline includes blue/green or canary and a manual approval
-* Run pipeline to deploy the latest release or a named version
-* OPTIONAL: show how to automated upgrading data via pipeline
