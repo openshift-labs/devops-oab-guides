@@ -11,7 +11,9 @@ modules:
     name: Create STAGE Environment
   automate-extrnal-db:
     name: Provisoning External Databases
-  release-prod:
+  create-prod:
+    name: Promote Builds to Production
+  release-prod-same-cluster:
     name: Promote Builds to Production
   advanced-deploy:
     name: Advanced Zerodowntime Deploy
