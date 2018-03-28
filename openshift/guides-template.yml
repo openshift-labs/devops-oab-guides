@@ -185,7 +185,7 @@ objects:
         - add-webhook
         - create-stage
         - automate-extrnal-db
-        - release-prod
+        - create-prod
         - advanced-deploy
   kind: ConfigMap
   metadata:

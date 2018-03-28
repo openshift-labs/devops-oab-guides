@@ -1,0 +1,101 @@
+## Promote Builds to Production
+
+[source,shell]
+----
+
+# create a secret with Prod token
+oc create secret generic prod-credentials --from-literal=username={{PROD_USERNAME}} --from-literal=password={{PROD_TOKEN}}
+oc label secret prod-credentials credential.sync.jenkins.openshift.io=true
+
+cat <<'EOF' > Jenkinsfile.prod
+def namespace, releaseTag, prodCluster, prodProject, prodUser, prodToken
+
+pipeline {
+  agent {
+      label 'skopeo'
+  }
+  stages {
+    stage('Select PROD Version') {
+      steps {
+        script {
+          openshift.withCluster() {
+            namespace = openshift.project()
+            prodCluster = env.PROD_CLUSTER.replace("https://","insecure://")
+            withCredentials([usernamePassword(credentialsId: "${namespace}-prod-credentials", usernameVariable: "PROD_USER", passwordVariable: "PROD_TOKEN")]) {
+              prodUser = env.PROD_USER
+              prodToken = env.PROD_TOKEN
+            }
+
+            def tags = openshift.selector("istag").objects().collect { it.metadata.name }.findAll { it.startsWith 'catalog:' }.collect { it.replaceAll(/catalog:(.*)/, "\$1") }.sort()
+            timeout(5) {
+              def inputs = input(
+                ok: "Deploy",
+                message: "Enter release version to promote to PROD",
+                parameters: [
+                  string(defaultValue: "prod", description: 'Name of the PROD project to create', name: 'PROD Project Name'),
+                  choice(choices: tags.join('\n'), description: '', name: 'Release Version')
+                ]
+              )
+              releaseTag = inputs['Release Version']
+              prodProject = inputs['PROD Project Name']
+            }
+          }
+        }
+      }
+    }
+    stage('Create PROD') {
+      steps {
+        script {
+          openshift.withCluster(prodCluster, prodToken) {
+            openshift.newProject(prodProject, "--display-name='CoolStore PROD'")
+          }
+        }
+      }
+    }    
+    stage('Promote Images to PROD') {
+      steps {
+        script {
+          openshift.withCluster() {
+            def srcCatalogRef = openshift.selector("istag", "catalog:${releaseTag}").object().image.dockerImageReference
+            def srcWebRef = openshift.selector("istag", "web-ui:${releaseTag}").object().image.dockerImageReference
+            def destCatalogRef = "${env.PROD_REGISTRY}/${prodProject}/catalog:${releaseTag}"
+            def destWebRef = "${env.PROD_REGISTRY}/${prodProject}/web-ui:${releaseTag}"
+            def srcToken = readFile "/run/secrets/kubernetes.io/serviceaccount/token"
+            sh "skopeo copy docker://${srcCatalogRef} docker://${destCatalogRef} --src-creds openshift:${srcToken} --dest-creds openshift:${prodToken} --src-tls-verify=false --dest-tls-verify=false"
+            sh "skopeo copy docker://${srcWebRef} docker://${destWebRef} --src-creds openshift:${srcToken} --dest-creds openshift:${prodToken} --src-tls-verify=false --dest-tls-verify=false"
+          }
+        }
+      }
+    }
+    stage('Deploy to PROD') {
+      steps {
+        script {
+          openshift.withCluster(prodCluster, prodToken) {
+            openshift.withProject(prodProject) {
+              def template = 'https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/coolstore-apb-template.yaml'
+              openshift.apply(
+                openshift.process("-f", template, "-p", "IMAGE_VERSION=${releaseTag}")
+              )
+            }
+          }
+        }
+      }
+    }    
+  }
+}
+EOF
+
+git add Jenkinsfile.prod
+git commit -m "create prod pipeline added"
+git push origin master
+
+oc new-app . --name=coolstore-create-prod --strategy=pipeline
+oc patch bc coolstore-create-prod  -p '{"spec":{"strategy":{"jenkinsPipelineStrategy":{"jenkinsfilePath":"Jenkinsfile.prod"}}}}'
+oc set env bc/coolstore-create-prod PROD_REGISTRY={{?}} PROD_CLUSTER={{?}} 
+
+----
+
+TODO
+* Create a pipeline to create the prod env, pull images into the Prod cluster and deploy CoolStore pods
+* Run pipeline to deploy the latest release or a named version
+* OPTIONAL: show how to automated upgrading data via pipeline
