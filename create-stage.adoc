@@ -6,7 +6,7 @@
 # Create build
 
 cat <<'EOF' > Jenkinsfile.release
-def releaseTag
+def releaseTag,majorVersion
 
 pipeline {
   agent {
@@ -20,8 +20,10 @@ pipeline {
         sh "git config --local user.name 'jenkins'"
         
         script {
-           commitId = sh(returnStdout: true, script: "git rev-parse --short HEAD").trim()
-           releaseTag = readMavenPom().getVersion().replace("-SNAPSHOT", "") + '-' + commitId
+          pomVersion = readMavenPom().getVersion().replace("-SNAPSHOT", "")
+          commitId = sh(returnStdout: true, script: "git rev-parse --short HEAD").trim()
+          releaseTag = pomVersion + '-' + commitId
+		      majorVersion = pomVersion.replaceAll(/(\d+\.\d+)\..*/, '$1')
         }
       }
     }
@@ -30,8 +32,12 @@ pipeline {
         SCM_GIT_URL = sh(returnStdout: true, script: 'git config remote.origin.url').trim()
       }
       steps {
-        withCredentials([usernamePassword(credentialsId: "${env.CICD_PROJECT}-gogs-credentials", usernameVariable: "GOGS_USERNAME", passwordVariable: "GOGS_PASSWORD")]) {
-	      sh "mvn --batch-mode release:clean release:prepare release:perform -s .settings.xml"
+        script {
+          openshift.withCluster() {
+            withCredentials([usernamePassword(credentialsId: "${openshift.project()}-gogs-credentials", usernameVariable: "GOGS_USERNAME", passwordVariable: "GOGS_PASSWORD")]) {
+              sh "mvn --batch-mode release:clean release:prepare release:perform -s .settings.xml"
+            }
+          }
         }
       }
     }
@@ -39,11 +45,11 @@ pipeline {
       steps {
         script {
           openshift.withCluster() {
-            openshift.withProject(env.CICD_PROJECT) {
-              echo "Releasing version ${releaseTag}"
-              openshift.tag("${env.CICD_PROJECT}/catalog:latest", "${env.CICD_PROJECT}/catalog:${releaseTag}")
-              openshift.tag("${env.CICD_PROJECT}/web-ui:latest", "${env.CICD_PROJECT}/web-ui:${releaseTag}")
-            }
+            echo "Releasing image versions ${releaseTag} and ${majorVersion}"
+            openshift.tag("${openshift.project()}/catalog:latest", "${openshift.project()}/catalog:${releaseTag}")
+            openshift.tag("${openshift.project()}/catalog:latest", "${openshift.project()}/catalog:${majorVersion}")
+            openshift.tag("${openshift.project()}/web-ui:latest", "${openshift.project()}/web-ui:${releaseTag}")
+            openshift.tag("${openshift.project()}/web-ui:latest", "${openshift.project()}/web-ui:${majorVersion}")
           }
         }
       }
@@ -66,7 +72,7 @@ pipeline {
             openshift.withProject(env.STAGE_PROJECT) {
               def template = 'https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/coolstore-template.yaml'
               openshift.apply(
-                openshift.process("-f", template, "-p", "IMAGE_VERSION=${releaseTag}", "-p", "IMAGE_NAMESPACE=${env.CICD_PROJECT}")
+                openshift.process("-f", template, "-p", "IMAGE_VERSION=${releaseTag}", "-p", "IMAGE_NAMESPACE=${openshift.project()}")
               )
             }
           }
@@ -82,13 +88,10 @@ git add Jenkinsfile.release
 git commit -m "release pipeline added"
 git push origin master
 
+oc create secret generic gogs-credentials --from-literal=username={{GIT_USER}} --from-literal=password={{GIT_PASSWORD}}
+oc label secret gogs-credentials credential.sync.jenkins.openshift.io=true
+
 oc new-app . --name=catalog-release --strategy=pipeline
 oc patch bc catalog-release  -p '{"spec":{"strategy":{"jenkinsPipelineStrategy":{"jenkinsfilePath":"Jenkinsfile.release"}}}}'
-oc set env bc/catalog-release NEXUS_URL=http://nexus.lab-infra.svc:8081 \
-                            STAGE_PROJECT=stage{{PROJECT_SUFFIX}} \
-                            CICD_PROJECT=cicd{{PROJECT_SUFFIX}}
-
-oc create secret generic gogs-credentials --from-literal=username={{GIT_USER}} --from-literal=password={{GIT_PASSWORD}}
-oc secrets new-basicauth gogs-credentials --username={{GIT_USER}} --password={{GIT_PASSWORD}}
-oc label secret gogs-credentials credential.sync.jenkins.openshift.io=true
+oc set env bc/catalog-release NEXUS_URL=http://nexus.lab-infra.svc:8081 STAGE_PROJECT=stage{{PROJECT_SUFFIX}} 
 ----
