@@ -6,7 +6,7 @@
   vars:
     lab_infra_project: lab-infra
     user_gogs_admin: gogs
-    user_gogs_test: test
+    user_gogs_user: developer
     user_gogs_password: openshift
     labs_github_ref: master
     user_count: 10
@@ -47,7 +47,7 @@
         gogs_image_version: 0.11.34
         gogs_admin_user: "{{ user_gogs_admin }}"
         gogs_admin_password: "{{ user_gogs_password }}"
-        gogs_user: "{{ user_gogs_test }}"
+        gogs_user: "{{ user_gogs_user }}"
         gogs_password: "{{ user_gogs_password }}"
         clean_deploy: true
       tags: gogs
@@ -122,68 +122,3 @@
         - create_prod|bool
       ignore_errors: true
       tags: user_projects
-
-    # setup git repos for test user
-    - name: create projects git repo for {{ user_gogs_test }} user
-      uri:
-        url: http://{{ gogs_hostname }}/api/v1/user/repos
-        method: POST
-        body: '{"name": "{{ item }}", "private": false}'
-        body_format: json
-        user: "{{ user_gogs_test }}"
-        password: "{{ user_gogs_password }}"
-        status_code: 200,201
-        force_basic_auth: true
-        ignore_errors: true
-      with_items:
-        - catalog-spring-boot
-        - web-nodejs
-      tags: 
-        - gogs
-        - test
-
-    - name: create temporary git directory
-      tempfile:
-        state: directory
-        prefix: devops-oab-git
-      register: git_dir
-      tags: 
-        - gogs
-        - test
-
-    - name: unarchive labs source archive
-      unarchive:
-        remote_src: yes
-        src: "https://github.com/openshift-labs/devops-oab-labs/archive/{{ labs_github_ref }}.zip"
-        dest: "{{ git_dir.path }}"
-      tags: 
-        - gogs
-        - test
-
-    - name: push to catalog-spring-boot git repo for user {{ user_gogs_test }}
-      shell: |
-        git init
-        git add . --all
-        git config user.email "rhdeveloper@labs.com"
-        git config user.name "rhdeveloper"
-        git commit -m "Initial add"
-        git push -f http://{{ user_gogs_test }}:{{ user_gogs_password }}@{{ gogs_hostname }}/{{ user_gogs_test }}/catalog-spring-boot.git master
-      args:
-        chdir: "{{ git_dir.path }}/devops-oab-labs-{{ labs_github_ref }}/catalog-spring-boot"
-      tags: 
-        - gogs
-        - test
-
-    - name: push to web-nodejs git repo for user {{ user_gogs_test }}
-      shell: |
-        git init
-        git add . --all
-        git config user.email "rhdeveloper@labs.com"
-        git config user.name "rhdeveloper"
-        git commit -m "Initial add"
-        git push -f http://{{ user_gogs_test }}:{{ user_gogs_password }}@{{ gogs_hostname }}/{{ user_gogs_test }}/web-nodejs.git master
-      args:
-        chdir: "{{ git_dir.path }}/devops-oab-labs-{{ labs_github_ref }}/web-nodejs"
-      tags: 
-        - gogs
-        - test
