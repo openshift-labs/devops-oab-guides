@@ -41,8 +41,6 @@
         name: openshift_gogs
       vars:
         project_name: "{{ lab_infra_project }}"
-        project_display_name: "DevOps Workshop Infrastructure"
-        project_desc: "DevOps Workshop Infrastructure"
         gogs_route: "{{ gogs_hostname }}"
         gogs_image_version: 0.11.34
         gogs_admin_user: "{{ user_gogs_admin }}"
