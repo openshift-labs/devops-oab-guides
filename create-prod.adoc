@@ -89,7 +89,7 @@ git commit -m "create prod pipeline added"
 git push origin master
 
 oc new-build . --name=coolstore-create-prod --strategy=pipeline
-oc cancel-build bc/create-prod
+oc cancel-build bc/coolstore-create-prod
 oc patch bc coolstore-create-prod  -p '{"spec":{"strategy":{"jenkinsPipelineStrategy":{"jenkinsfilePath":"Jenkinsfile.create-prod"}}}}'
 oc set env bc/coolstore-create-prod PROD_PROJECT=prod{{PROJECT_SUFFIX}} PROD_REGISTRY={{PROD_CLUSTER_REGISTRY}} PROD_MASTER={{PROD_CLUSTER_URL}} 
 
