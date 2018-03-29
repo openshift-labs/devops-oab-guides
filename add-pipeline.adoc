@@ -65,7 +65,8 @@ git add Jenkinsfile
 git commit -m "build pipeline added"
 git push origin master
 
-oc new-app . --name=catalog-build --strategy=pipeline
+oc new-build . --name=catalog-build --strategy=pipeline
+oc cancel-build bc/catalog-build 
 oc set env bc/catalog-build NEXUS_URL=http://nexus.lab-infra.svc:8081 DEV_PROJECT=dev{{PROJECT_SUFFIX}} 
 ----
 

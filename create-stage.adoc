@@ -91,7 +91,8 @@ git push origin master
 oc create secret generic gogs-credentials --from-literal=username={{GIT_USER}} --from-literal=password={{GIT_PASSWORD}}
 oc label secret gogs-credentials credential.sync.jenkins.openshift.io=true
 
-oc new-app . --name=catalog-release --strategy=pipeline
+oc new-build . --name=catalog-release --strategy=pipeline
+oc cancel-build bc/catalog-release
 oc patch bc catalog-release  -p '{"spec":{"strategy":{"jenkinsPipelineStrategy":{"jenkinsfilePath":"Jenkinsfile.release"}}}}'
 oc set env bc/catalog-release NEXUS_URL=http://nexus.lab-infra.svc:8081 STAGE_PROJECT=stage{{PROJECT_SUFFIX}} 
 ----

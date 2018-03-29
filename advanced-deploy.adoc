@@ -127,6 +127,7 @@ git commit -m "canary prod pipeline added"
 git push origin master
 
 oc new-app . --name=catalog-deploy-prod --strategy=pipeline
+oc cancel-build bc/catalog-deploy-prod
 oc patch bc catalog-deploy-prod  -p '{"spec":{"strategy":{"jenkinsPipelineStrategy":{"jenkinsfilePath":"Jenkinsfile.catalog-prod"}}}}'
 oc set env bc/catalog-deploy-prod PROD_PROJECT=prod{{PROJECT_SUFFIX}} PROD_REGISTRY={{PROD_CLUSTER_REGISTRY}} PROD_MASTER={{PROD_CLUSTER_URL}} 
 
