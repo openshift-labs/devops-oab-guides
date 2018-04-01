@@ -8,10 +8,12 @@ oc set triggers dc/catalog --manual -n dev{{PROJECT_SUFFIX}}
 oc project cicd{{PROJECT_SUFFIX}}
 oc new-app jenkins-persistent
 
-git clone {{GIT_SERVER_URL}}/{{GIT_USER}}/catalog-spring-boot.git
-cd catalog-spring-boot
+# Create cd-infra repo in Gogs
 
-cat <<'EOF' > Jenkinsfile
+git clone {{GIT_SERVER_URL}}/{{GIT_USER}}/cd-infra.git
+cd cd-infra
+
+cat <<'EOF' > Jenkinsfile.catalog-build
 pipeline {
   agent {
       label 'maven'
@@ -19,6 +21,7 @@ pipeline {
   stages {
     stage('Build JAR') {
       steps {
+        git url: '{{GIT_SERVER_URL}}/{{GIT_USER}}/catalog-spring-boot.git'
         sh "cp .settings.xml ~/.m2/settings.xml"
         sh "mvn package"
       }
@@ -61,12 +64,13 @@ pipeline {
 }
 EOF
 
-git add Jenkinsfile
+git add Jenkinsfile.catalog-build
 git commit -m "build pipeline added"
 git push origin master
 
 oc new-build . --name=catalog-build --strategy=pipeline
 oc cancel-build bc/catalog-build 
+oc patch bc catalog-release  -p '{"spec":{"strategy":{"jenkinsPipelineStrategy":{"jenkinsfilePath":"Jenkinsfile.catalog-build"}}}}'
 oc set env bc/catalog-build NEXUS_URL=http://nexus.lab-infra.svc:8081 DEV_PROJECT=dev{{PROJECT_SUFFIX}} 
 ----
 

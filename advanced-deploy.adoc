@@ -3,6 +3,7 @@
 [source,shell]
 ----
 
+cd cd-infra
 cat <<'EOF' > Jenkinsfile.catalog-prod
 def namespace, releaseTag, prodCluster, prodToken, activeSvc, canarySvc
 

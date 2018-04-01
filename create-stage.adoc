@@ -4,7 +4,7 @@
 ----
 
 # Create build
-
+cd cd-infra
 cat <<'EOF' > Jenkinsfile.release
 def releaseTag
 
@@ -15,7 +15,7 @@ pipeline {
   stages {
     stage('Prepare') {
       steps {
-        sh "git checkout master"
+        git url: '{{GIT_SERVER_URL}}/{{GIT_USER}}/catalog-spring-boot.git'
         sh "git config --local user.email 'jenkins@cicd.com'"
         sh "git config --local user.name 'jenkins'"
         

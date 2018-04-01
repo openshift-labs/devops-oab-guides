@@ -7,7 +7,6 @@
 oc login 
 oc project dev{{PROJECT_SUFFIX}}
 
-
 # download code
 wget https://github.com/openshift-labs/devops-oab-labs/archive/master.zip
 unzip master.zip
