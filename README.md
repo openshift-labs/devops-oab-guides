@@ -14,6 +14,8 @@ The lab application used in this workshop is available at https://github.com/ope
 * Promote Releases to Production
 * Zero-Downtime Deployment in Production
 
+*CAUTION: if using 2 clusters (dev, prod) for these labs, make sure the prod cluster image registry is accessible from the dev cluster*
+
 # Run Guides Locally for Development
 ```
 $ git clone https://github.com/openshift-labs/devops-oab-guides.git
