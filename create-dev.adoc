@@ -1,63 +1,5 @@
 ## Create DEV Deployment Environment
 
-[source,shell]
-----
-# Commands Cheatsheet
-
-oc login 
-oc project dev{{PROJECT_SUFFIX}}
-
-# download code
-wget https://github.com/openshift-labs/devops-oab-labs/archive/master.zip
-unzip master.zip
-mv devops-oab-labs-master/* .
-rm -rf devops-oab-labs-master
-
-# Register in gogs as user {{GIT_USER}}
-# Create catalog-spring-boot repo in Gogs
-# Create web-nodejs repo in Gogs
-
-# add catalog code to git
-cd catalog-spring-boot
-git config --global user.name "rhdeveloper"
-git config --global user.email "rhdeveloper@me.com"
-git init
-git add . --all
-git commit -m "initial add"
-git remote add origin {{GIT_SERVER_URL}}/{{GIT_USER}}/catalog-spring-boot.git
-git push -u origin master
-
-# add web code to git
-cd ../web-nodejs
-git init
-git add . --all
-git commit -m "initial add"
-git remote add origin {{GIT_SERVER_URL}}/{{GIT_USER}}/web-nodejs.git
-git push -u origin master
-
-# create imatestreams 
-oc create -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/catalog-is.yaml -n cicd{{PROJECT_SUFFIX}}
-oc create -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/web-is.yaml -n cicd{{PROJECT_SUFFIX}}
-
-# deploy catalog to build images and push to cicd
-oc new-app -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/catalog-template.yaml \
-      --param=GIT_URI={{GIT_SERVER_URL}}/{{GIT_USER}}/catalog-spring-boot.git \
-      --param=MAVEN_MIRROR_URL={{NEXUS_URL}} \
-      --param=IMAGE_NAMESPACE=cicd{{PROJECT_SUFFIX}} \
-      -n dev{{PROJECT_SUFFIX}}
-
-# deploy web
-oc new-app -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/web-template.yaml \
-      --param=GIT_URI={{GIT_SERVER_URL}}/{{GIT_USER}}/web-nodejs.git \
-      --param=IMAGE_NAMESPACE=cicd{{PROJECT_SUFFIX}} \
-      -n dev{{PROJECT_SUFFIX}}
-
-# Try out web route in the browser
-
-----
-
-
-
 In this lab you will get familiar with OpenShift Web Console and OpenShift CLI and gain some experience 
 interacting with an OpenShift cluster. You will also learn about deployment environments in 
 software delivery lifecycle and deploy the application into these deployment environments.
@@ -86,13 +28,30 @@ CAUTION: Replace `{{PROJECT_SUFFIX}}` with the number provided to you by the ins
 * Username: `{{OPENSHIFT_USER}}`
 * Password: `{{OPENSHIFT_PASSWORD}}`
 
-Projects are a top level concept to help you organize your deployments. An OpenShift project allows a community of users (or a user) to organize and manage their content in isolation from other communities. Each project has its own resources, policies (who can or cannot perform actions), and constraints (quotas and limits on resources, etc). Projects act as a "wrapper" around all the application services and endpoints you (or your teams) are using for your work. You can see the list of projects you have access to using the following command:
+Projects are a top level concept to help you organize your deployments. An OpenShift 
+project allows a community of users (or a user) to organize and manage their content in 
+isolation from other communities. Each project has its own resources, policies 
+(who can or cannot perform actions), and constraints (quotas and limits on resources, etc). 
+
+Projects act as a "wrapper" around all the application services and endpoints you 
+(or your teams) are using for your work. You can see the list of projects 
+you have access to using the following command:
 
 [source,shell]
 ----
 $ oc get projects
 ----
 
+There a few projects created for you in order to use during the following labs. To simplify 
+using OpenShift CLI, you can specify a project as the active project which will be used 
+as the default project when running OpenShift CLI commands. 
+
+Specify the DEV project as the active project:
+
+[source,shell]
+----
+$ oc project dev{{PROJECT_SUFFIX}}
+----
 
 #### OpenShift Web Console
 
@@ -120,220 +79,85 @@ image::devops-explore-web-login.png[OpenShift Login]
 After you have authenticated to the web console, you will be presented with a list of 
 projects that your user has permission to work with.
 
-When you click on the *explore-{{PROJECT_SUFFIX}}* project, you will be taken to the project 
-overview page which will list all of the routes, services, deployments, and pods that you have running as part 
-of your project. There’s nothing there now, but in the following labs you will create deployments and other resources in your projects.
-
-You can delete a project (and other resources) using the `oc delete` command. You won’t 
-need the *explore-{{PROJECT_SUFFIX}}* project in the following labs and therefore you can clean up your environment by removing it:
-
-CAUTION: Replace `{{PROJECT_SUFFIX}}` with the number provided to you by the instructor.
-
-[source,shell]
-----
-$ oc delete project explore-{{PROJECT_SUFFIX}}
-----
-
-
 #### Deployment Environments
 
-A deployment environment describes a distinct space for an application to run during a particular 
-stage of a CI/CD pipeline. Typical environments include development, test, stage, and production, 
-for example. In this lab you will create _Dev_ and _Prod_ deployment environments for the CoolStore 
-application which is deployed throughout this session:
-
-* *Dev Environment*: this environment is used during development of the Cart service and every 
-change made by developers gets deployed into this environment. Other services e.g. Cart and 
-Inventory would have also their own dedicated _Dev_ environments which allows the developers 
-to write code and test their service without disrupting other teams. If the changes made pass 
-the automated tests, the code will be deployed into the _Prod_ environment.
-
-* *Production Environment*: the live environment for the entire _CoolStore_ webshop with all 
-services deployed and serving requests to customers. Any interruption in this environment would 
-directly affect the customers.
-
-A _Project_ in OpenShift is a mechanism to scope applications in a cluster and is the central 
-vehicle by which access to resources is managed. A project allows users to organize and manage their 
-applications in isolation from other users. Users must be given access to projects by administrators, 
-or if allowed to create projects, automatically have access to their own projects. Granular access 
-control and network traffic policies for projects in OpenShift makes them a suitable way for 
-modeling deployment environments that fulfil the collaboration, networking and isolation requirements.
-
-In this lab, you will create the _Dev_ deployment environment and deploy the Cart service into this 
-environment. _Cart_ service is developed in Java using the Spring Boot framework.
-
-In the current lab, in order for you to become familiar with both the OpenShift Web Console and the 
-OpenShift command line interface (CLI), every step is explained via both the Web Console and CLI 
-which you can choose based on your preferences. Either way leads to the exact same result.
-
-Let’s start with with creating the _Dev_ deployment environment and deploying the Cart service.
-
-#### Create Project via OpenShift Web Console
-
-In OpenShift Web Console, click on the *Create Project* button in order to create a new project, 
-enter the following details and click on *Create* button:
-
-CAUTION: Replace `{{PROJECT_SUFFIX}}` with the number provided to you by the instructor.
-
-* Name: `dev-{{PROJECT_SUFFIX}}`
-* Display Name: `Development Environment`
-
-The Dev deployment project for the Cart service is created now and is ready for the Cart service to be deployed. 
-
-By default, the current user who created the project is the _admin_ for this project. The 
-OpenShift cluster admins or the project admins can define granular access control on the 
-project and control how can view, modify or deploying applications in each project. This is 
-particularly essential for example when you want developers to be able to view the _Prod_ environments 
-and get debug information without allowing them to modify the state of those environments. In order 
-to review the access control on the _Dev_ project, click on *Resources -> Membership* on the left 
-sidebar menu. Note that the current user has the _admin_ role.
-
-image::devops-envs-dev-membership.png[Project Access Control]
-
-Now, let’s deploy the Spring Boot application, Cart service, into the Dev environment. OpenShift 
-supports deploying containerized apps in three different ways and allows developer to pick the 
-process that is most suitable for their projects:
-
-* From application source code
-* From application binary (e.g. app.jar)
-* From docker images
-
-OpenShift introduces a mechanism called {{OPENSHIFT_DOCS_BASE}}/architecture/core_concepts/builds_and_image_streams.html#source-build[Source-to-Image (S2I)] which is a tool for building docker container images. It produces ready-to-run images by injecting application source into a container image and assembling a new image. The new image incorporates the application runtime base image and built source code and is ready to use with the docker run command. The application base runtime might be various language runtimes such as Java, Ruby, NodeJS, Python, etc or middleware runtimes such as Apache Tomcat, JBoss EAP, etc.
-
-S2I can also take application binaries such as JAR, WAR or EAR files as input and build a new docker image for the application combined with the application runtime.
-
-If you already have a process in-place for building docker images, OpenShift allows you to point to the ready docker images and deploy them as is on the platform.
-
-In this lab, you will use the S2I mechanism for building the Cart service from source code. Since Cart service is based on Spring Boot, you only need the Java language runtime for running this service and therefore you will use the certified OpenJDK application runtime which is provided in OpenShift out-of-the-box. Click on *Browse Catalog* to open the service catalog. The catalog shows the list of available language and application runtimes, services as well as templates. A template describes how to build, configure and deploy a set of containers in a reproducible manner. OpenShift templates simplify composing complex multi-container applications and makes it easy to recreate and configure complete applications from scratch by deploying a template.
-
-Enter _jdk_ in the text field in order to find the *Red Hat OpenJDK 1.8* language runtime, and then click on the one that shows https://www.oracle.com/java/duke.html[duke, the java mascot].
-
-image::devops-envs-catalog-jdk.png[OpenJDK Base Image]
-
-Now that you have chosen the Java language runtime, you can enter the URL to the Cart service application source code to specify it as an input to the S2I process. Click *Next* and enter the following in the text fields:
-
-CAUTION: Replace `{{PROJECT_SUFFIX}}` with the number provided to you by the instructor.
-
-  * Name: `cart`
-  * Git URL: `{{GIT_SERVER_INTERNAL_URL}}/{{GIT_USER}}/cart-service.git`
-
-image::devops-envs-cart-newapp.png[Deploy Cart Service]
-
-Click on *advanced options* to review advanced options for setting memory and cpu limits, environment variables, scaling and more when deploying an application. In this lab, similar to most development teams a Maven artifact repository (e.g. Sonatype Nexus and Artifactory) is used for managing Maven artifacts. Add the following environment variable under *Build Configuration* to specify the Maven repository manager URL to be used during the build phase:
-
-* Name: `MAVEN_MIRROR_URL`
-* Value: `{{NEXUS_URL}}`
-
-Note that the Maven repository manager URL is an internal URL and is not accessible externally. Click on *Create* button and then on *Continue to the project overview.*.
-
-All required resources are created in order to build and deploy the Cart service in the Dev project. OpenShift provides an out-of-the-box load-balancer which is automatically updated to route traffic to Cart service when the container is deployed and ready to receive traffic.
-
-In the project overview, the Cart service S2I build process is running to build first the application JAR file and then a docker image by layering the JAR file on the OpenJDK base image.
-
-image::devops-envs-cart-build.png[Create Cart Service]
-
-You can see the build logs as build is making progress. If you want to see the full logs, click on *View Log* link to see the build logs in a larger window. You can click on the *Follow* link to follow the logs in the browser.
-
-image::devops-envs-cart-build-logs.png[Build Logs]
-
-When the build finishes and the application docker image is created, the docker image is pushed by default to OpenShift internal registry and then deployed to OpenShift. Builds also support pushing the built image to other image registries outside OpenShift.
-
-image::devops-envs-cart-deployed.png[Create Cart Service]
-
-OpenShift uses {{OPENSHIFT_DOCS_BASE}}/dev_guide/application_health.html[container health checks] to detect and handle or heal unhealthy containers which is not set yet on the deployed Cart service. OpenShift runs the following probes to manage the container and application health:
-
-* _Liveness Probe_: a liveness probe checks if the container is still running. If the liveness probe fails, OpenShift restarts the container
-* _Readiness Probe_: a readiness probe determines if a container is ready to service requests. If the readiness probe fails, OpenShift removes that container from the list of endpoints in the service load-balancer. A readiness probe can be used to signal the service load-balancer that even though a container is running, it should not receive any traffic.
-
-There are multiple ways to check a container liveness and readiness. You can define an HTTP URL, a command to execute in the container or a TCP socket to connect to. Click on *cart* deployment to see the deployment configuration for the Cart service. Alternatively, you can click on *Applications* &rarr; *Deployments* from the left-side menu and then on *cart*. Click on *Action* menu button and then *Edit Health Checks* to configure HTTP liveness and readiness probes for the Cart service.
-
-* Type: `HTTP`
-* Path: `/health`
-* Port: `8080`
-* Initial Delay: `15`
-
-image::devops-envs-cart-healthchecks.png[Create Cart Service]
-
-Wait till the Cart service is re-deployed with the new health check configurations and then verify that the Cart service is functioning by pointing your browser to the Cart service REST endpoint.
-
-CAUTION: Replace `{{PROJECT_SUFFIX}}` with the number provided to you by the instructor.
-
-Alternatively, you can use the `curl` command to verify that the Cart service is functioning:
+Download source code for the CoolStore application from GitHub:
 
 [source,shell]
 ----
-$ curl http://{{CART_ROUTE}}/health
-
-{"status":"UP","diskSpace":{"status":"UP","total":10725883904,"free":9970741248,"threshold":10485760},"refreshScope":{"status":"UP"},"hystrix":{"status":"UP"}}
+$ wget https://github.com/openshift-labs/devops-oab-labs/archive/master.tar.gz
+$ tar xvfz master.tar.gz
+$ mv devops-oab-labs-master/* .
+$ rm -rf devops-oab-labs-master
 ----
 
-Note that Cart is a REST service and does not provide any web page at the root of the application.
 
-#### Create Project via OpenShift CLI
+Register an account in Gogs: http://{{GIT_HOSTNAME}}
 
-You can perform the same steps as above using the OpenShift CLI commands. Start with creating the _Dev_ project:
+* Username: `{{GIT_USER}}`
+* Email: `{{GIT_USER}}@gogs.com`
+* Password: `{{GIT_PASSWORD}}`
 
-CAUTION: Replace `{{PROJECT_SUFFIX}}` with the number provided to you by the instructor.
+Create a Git repository for the Catalog service.
+
+Import the Catalog service source code into the Git repository on Gogs:
 
 [source,shell]
 ----
-$ oc new-project dev-{{PROJECT_SUFFIX}} --display-name="Cart Dev"
+$ cd catalog-spring-boot
+$ git config --global user.name "rhdeveloper"
+$ git config --global user.email "rhdeveloper@me.com"
+$ git init
+$ git add . --all
+$ git commit -m "initial add"
+$ git remote add origin http://{{GIT_USER}}:{{GIT_PASSWORD}}@{{GIT_HOSTNAME}}/{{GIT_USER}}/catalog-spring-boot.git
+$ git push -u origin master
 ----
 
-You can now create the Cart service by specifying the language runtime base image, the source code repository and a name for the service:
 
-CAUTION: Replace `{{PROJECT_SUFFIX}}` with the number provided to you by the instructor.
+Create a Git repository for the Web UI.
+
+Import the Web UI source code into the Git repository on Gogs:
 
 [source,shell]
 ----
-$ oc new-app redhat-openjdk18-openshift:1.2~{{GIT_SERVER_URL}}/{{GIT_USER}}/cart-service.git \
-    --name=cart \
-    --build-env=MAVEN_MIRROR_URL={{NEXUS_URL}}
-
---> Found image 56cfa0a (6 weeks old) in image stream "openshift/redhat-openjdk18-openshift" under tag "1.2" for "redhat-openjdk18-openshift:1.2"
-
-    Java Applications
-    -----------------
-    Platform for building and running plain Java applications (fat-jar and flat classpath)
-
-    Tags: builder, java
-
-    * A source build using source code from {{GIT_SERVER_URL}}/{{GIT_USER}}/cart-service.git will be created
-      * The resulting image will be pushed to image stream "cart:latest"
-      * Use 'start-build' to trigger a new build
-    * This image will be deployed in deployment config "cart"
-    * Ports 8080/tcp, 8443/tcp, 8778/tcp will be load balanced by service "cart"
-      * Other containers can access this service through the hostname "cart"
-
---> Creating resources ...
-    imagestream "cart" created
-    buildconfig "cart" created
-    deploymentconfig "cart" created
-    service "cart" created
---> Success
-    Build scheduled, use 'oc logs -f bc/cart' to track its progress.
-    Application is not exposed. You can expose services to the outside world by executing one or more of the commands below:
-     'oc expose svc/cart'
-    Run 'oc status' to view your app.
+$ cd ../web-nodejs
+$ git init
+$ git add . --all
+$ git commit -m "initial add"
+$ git remote add origin http://{{GIT_USER}}:{{GIT_PASSWORD}}@{{GIT_HOSTNAME}}/{{GIT_USER}}/web-nodejs.git
+$ git push -u origin master
 ----
 
-The Cart service is accessible by default within OpenShift. You can update the built-in load-balancer in OpenShift to route traffic to the Cart service by exposing the internal Cart service:
-[source,shell]
-----
-$ oc expose svc/cart
-route "cart" exposed
-----
 
-You can also view the build logs as the build is running:
+The container images built for Catalog and Web UI will be stored in the `cicd{{PROJECT_SUFFIX}}` project and 
+deployed from there across various environments. 
+
+Create the image streams for Catalog and Web UI (note the `-n` flag):
 
 [source,shell]
 ----
-$ oc logs bc/cart -f
+$ oc create -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/catalog-is.yaml -n cicd{{PROJECT_SUFFIX}}
+$ oc create -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/web-is.yaml -n cicd{{PROJECT_SUFFIX}}
 ----
 
-And finally, define the `/health` HTTP URL as the liveness and readiness probes for the Cart service:
+Deploy the Catalog service into the DEV environment:
 
 [source,shell]
 ----
-$ oc set probe dc/cart --readiness --liveness --get-url=http://:8080/health --initial-delay-seconds=15
+$ oc new-app -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/catalog-template.yaml \
+      --param=GIT_URI=http://{{GIT_HOSTNAME}}/{{GIT_USER}}/catalog-spring-boot.git \
+      --param=MAVEN_MIRROR_URL={{NEXUS_URL}} \
+      --param=IMAGE_NAMESPACE=cicd{{PROJECT_SUFFIX}}
 ----
+
+Deploy the Web UI service into the DEV environment:
+
+[source,shell]
+----
+$ oc new-app -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/web-template.yaml \
+      --param=GIT_URI=http://{{GIT_HOSTNAME}}/{{GIT_USER}}/web-nodejs.git \
+      --param=IMAGE_NAMESPACE=cicd{{PROJECT_SUFFIX}} 
+----
+
+Point your browser to the Web UI route url
