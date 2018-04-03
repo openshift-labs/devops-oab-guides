@@ -57,8 +57,8 @@ CoolStore is a fully functional online shop application for selling Red Hat merc
 
 image::devops-intro-coolstore.png[CoolStore Webshop]
 
-CoolStore is built using multiple Java frameworks and Node JS and follows the microservices style of architecture. Each microservice in CoolStore is developed, deployed and managed independently and is responsible for a single functionality in the online shop. A high-level architecture view of the CoolStore application follows:
+CoolStore is built using Spring Boot for the backend Catalog service and Node.js and AngularJS for the front-end Web-UI.
 
 image::devops-intro-coolstore-arch.png[CoolStore Architecture]
 
-In this lab session, you will create a Continuous Delivery pipeline to automate test and deployment of the Cart service for every code and configuration change all the way to production.
+In this lab session, you will create a Continuous Delivery pipeline to automate test and deployment of the Catalog service for every code and configuration change all the way to production.
