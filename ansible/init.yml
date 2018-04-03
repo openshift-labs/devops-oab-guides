@@ -11,7 +11,7 @@
     labs_github_ref: master
     user_count: 10
     user_format: user%02d
-    create_prod: true
+    create_prod_project: true
 
   tasks:
     - include_role:
@@ -91,7 +91,7 @@
       with_sequence: start=1 end={{ user_count|int }} format="{{ user_format }}"
       when: 
         - user_count|int > 1 
-        - create_prod|bool
+        - create_prod_project|bool
       ignore_errors: true
       tags: user_projects
 
@@ -117,6 +117,22 @@
         oc adm policy add-role-to-group system:image-puller system:serviceaccounts:prod -n cicd
       when: 
         - user_count|int <= 1 
-        - create_prod|bool
+        - create_prod_project|bool
       ignore_errors: true
       tags: user_projects
+
+    # validate cluster
+    - name: check openjdk image stream installed
+      shell: "oc get is redhat-openjdk18-openshift -n openshift"
+      register: jdk_imagestream_result
+      ignore_errors: true
+      tags: validate
+
+    - name: display instructions to install openjdk image stream
+      debug:
+        msg:
+          - '### WARNING ###'
+          - 'OpenJDK image stream is not installed. Run the following as cluster admin:'
+          - 'oc create -n openshift -f https://raw.githubusercontent.com/openshift/openshift-ansible/release-3.9/roles/openshift_examples/files/examples/v3.9/xpaas-streams/jboss-image-streams.json'
+      when: jdk_imagestream_result|failed   
+      tags: validate     
