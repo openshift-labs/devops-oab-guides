@@ -1,14 +1,50 @@
 ## Promote Builds to Production
 
+
+Login to PROD:
+
+* Username: `{{PROD_USER}}`
+* Password: `{{PROD_PASSWORD}}`
+
 [source,shell]
 ----
+$ oc login {{PROD_URL}}
+----
 
-# create a secret with Prod token
-oc create secret generic prod-credentials --from-literal=username={{PROD_USERNAME}} --from-literal=password={{PROD_TOKEN}}
-oc label secret prod-credentials credential.sync.jenkins.openshift.io=true
+Get the PROD token:
 
-cd cd-infra
-cat <<'EOF' > Jenkinsfile.create-prod
+[source,shell]
+----
+$ oc whoami -t
+----
+
+Login back into the DEV cluster:
+
+[source,shell]
+----
+$ oc login {{OPENSHIFT_URL}}
+----
+
+Create a secret to hold PROD environment credentials which are needed in the pipeline. 
+
+[source,shell]
+----
+$ oc create secret generic prod-credentials --from-literal=username={{PROD_USERNAME}} --from-literal=password=PROD_TOKEN
+$ oc label secret prod-credentials credential.sync.jenkins.openshift.io=true
+----
+
+Change to the `cd-infra` repository working copy:
+
+[source,shell]
+----
+$ cd cd-infra
+----
+
+Create the Jenkinsfile for creating the PROD environment:
+
+[source,shell]
+----
+$ cat <<'EOF' > Jenkinsfile.create-prod
 def namespace, releaseTag, prodCluster, prodProject, prodToken
 
 pipeline {
@@ -84,19 +120,58 @@ pipeline {
   }
 }
 EOF
-
-git add Jenkinsfile.create-prod
-git commit -m "create prod pipeline added"
-git push origin master
-
-oc new-build . --name=coolstore-create-prod --strategy=pipeline
-oc cancel-build bc/coolstore-create-prod
-oc patch bc coolstore-create-prod  -p '{"spec":{"strategy":{"jenkinsPipelineStrategy":{"jenkinsfilePath":"Jenkinsfile.create-prod"}}}}'
-oc set env bc/coolstore-create-prod PROD_PROJECT=prod{{PROJECT_SUFFIX}} PROD_REGISTRY={{PROD_CLUSTER_REGISTRY}} PROD_MASTER={{PROD_CLUSTER_URL}} 
-
 ----
 
-TODO
-* Create a pipeline to create the prod env, pull images into the Prod cluster and deploy CoolStore pods
-* Run pipeline to deploy the latest release or a named version
-* OPTIONAL: show how to automated upgrading data via pipeline
+Add the Jenkinsfile to `cd-infra` git repository:
+
+[source,shell]
+----
+$ git add Jenkinsfile.create-prod
+$ git commit -m "create prod pipeline added"
+$ git push origin master
+----
+
+Create the OpenShift pipeline definition to use the Jenkins file
+
+[source,shell]
+----
+$ cat <<'EOF' > ~/pipeline-create-prod.yml
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: coolstore-create-prod
+spec:
+  runPolicy: Serial
+  source:
+    git:
+      ref: master
+      uri: "{{GIT_HOSTNAME}}/{{GIT_USER}}/cd-infra.git"
+    type: Git
+  strategy:
+    jenkinsPipelineStrategy:
+      env:
+        - name: PROD_REGISTRY
+          value: "{{ PROD_REGISTRY }}"
+        - name: PROD_MASTER
+          value: "{{ PROD_MASTER }}"
+        - name: PROD_PROJECT
+          value: "prod{{ PROJECT_SUFFIX }}"
+      jenkinsfilePath: Jenkinsfile.create-prod
+    type: JenkinsPipeline
+  triggers:
+    - github:
+        secret: CqPGlXcKJXXqKxW4Ye6z
+      type: GitHub
+    - generic:
+        secret: 4LXwMdx9vhQY4WXbLcFR
+      type: Generic
+    - type: ConfigChange
+EOF
+----
+
+Create an OpenShift pipeline:
+
+[source,shell]
+----
+oc create -f ~/pipeline-create-prod.yml
+----
