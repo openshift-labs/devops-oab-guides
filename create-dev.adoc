@@ -98,7 +98,7 @@ Register an account in Gogs: http://{{GIT_HOSTNAME}}
 * Email: `{{GIT_USER}}@gogs.com`
 * Password: `{{GIT_PASSWORD}}`
 
-Create a Git repository for the Catalog service.
+Create a Git repository for the Catalog service: `catalog-spring-boot`
 
 Import the Catalog service source code into the Git repository on Gogs:
 
@@ -115,7 +115,7 @@ $ git push -u origin master
 ----
 
 
-Create a Git repository for the Web UI.
+Create a Git repository for the Web UI: `web-nodejs`
 
 Import the Web UI source code into the Git repository on Gogs:
 

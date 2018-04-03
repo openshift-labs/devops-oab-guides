@@ -31,11 +31,17 @@ Clone the `cd-infra` repo into your workspace:
 $ git clone http://{{GIT_USER}}:{{GIT_PASSWORD}}@{{GIT_HOSTNAME}}/{{GIT_USER}}/cd-infra.git
 ----
 
-Create a Jenkinsfile to build and deploy Catalog into the DEV environment:
+Change to the `cd-infra` repository working copy:
 
 [source,shell]
 ----
 $ cd cd-infra
+----
+
+Create a Jenkinsfile to build and deploy Catalog into the DEV environment:
+
+[source,shell]
+----
 $ cat <<'EOF' > Jenkinsfile.catalog-build
 pipeline {
   agent {
