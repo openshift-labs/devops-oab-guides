@@ -1,11 +1,17 @@
-## Create STAGE Deployment Environment
+## Release Catalog Service to STAGE Environment
+
+Change to the `cd-infra` repository working copy:
 
 [source,shell]
 ----
+$ cd cd-infra
+----
 
-# Create build
-cd cd-infra
-cat <<'EOF' > Jenkinsfile.release
+Create a Jenkinsfile for the release pipeline:
+
+[source,shell]
+----
+$ cat <<'EOF' > Jenkinsfile.release
 def releaseTag
 
 pipeline {
@@ -15,7 +21,7 @@ pipeline {
   stages {
     stage('Prepare') {
       steps {
-        git url: '{{GIT_SERVER_URL}}/{{GIT_USER}}/catalog-spring-boot.git'
+        git url: 'http://{{GIT_HOSTNAME}}/{{GIT_USER}}/catalog-spring-boot.git'
         sh "git config --local user.email 'jenkins@cicd.com'"
         sh "git config --local user.name 'jenkins'"
         
@@ -78,17 +84,66 @@ pipeline {
   }
 }
 EOF
+----
 
 
-git add Jenkinsfile.release
-git commit -m "release pipeline added"
-git push origin master
+Add the Jenkinsfile to `cd-infra` git repository:
 
-oc create secret generic gogs-credentials --from-literal=username={{GIT_USER}} --from-literal=password={{GIT_PASSWORD}}
-oc label secret gogs-credentials credential.sync.jenkins.openshift.io=true
+[source,shell]
+----
+$ git add Jenkinsfile.release
+$ git commit -m "release pipeline added"
+$ git push origin master
+----
 
-oc new-build . --name=catalog-release --strategy=pipeline
-oc cancel-build bc/catalog-release
-oc patch bc catalog-release  -p '{"spec":{"strategy":{"jenkinsPipelineStrategy":{"jenkinsfilePath":"Jenkinsfile.release"}}}}'
-oc set env bc/catalog-release NEXUS_URL=http://nexus.lab-infra.svc:8081 STAGE_PROJECT=stage{{PROJECT_SUFFIX}} 
+Release process invovles creating Git releases and tags in Gogs. Create a secret to hold the credentials for creating 
+tags in Gogs (explain secret sync in Jenkins):
+
+[source,shell]
+----
+$ oc create secret generic gogs-credentials --from-literal=username={{GIT_USER}} --from-literal=password={{GIT_PASSWORD}}
+$ oc label secret gogs-credentials credential.sync.jenkins.openshift.io=true
+----
+
+Create the OpenShift pipeline definition to use the Jenkins file
+
+[source,shell]
+----
+$ cat <<'EOF' > ~/pipeline-catalog-release.yml
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: catalog-release
+spec:
+  runPolicy: Serial
+  source:
+    git:
+      ref: master
+      uri: "{{GIT_HOSTNAME}}/{{GIT_USER}}/cd-infra.git"
+    type: Git
+  strategy:
+    jenkinsPipelineStrategy:
+      env:
+        - name: NEXUS_URL
+          value: "{{NEXUS_URL}}"
+        - name: STAGE_PROJECT
+          value: "stage{{PROJECT_SUFFIX}}"
+      jenkinsfilePath: Jenkinsfile.release
+    type: JenkinsPipeline
+  triggers:
+    - github:
+        secret: CqPGlXcKJXXqKxW4Ye6z
+      type: GitHub
+    - generic:
+        secret: 4LXwMdx9vhQY4WXbLcFR
+      type: Generic
+    - type: ConfigChange
+EOF
+----
+
+Create an OpenShift pipeline:
+
+[source,shell]
+----
+oc create -f ~/pipeline-catalog-release.yml
 ----
