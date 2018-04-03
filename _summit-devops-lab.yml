@@ -1,0 +1,29 @@
+id: "devops"
+name: "DevOps Workshop with OpenShift and OpenShift Ansible Broker"
+
+content:
+  url: https://raw.githubusercontent.com/openshift-labs/devops-oab-guides/master
+
+vars:
+  OPENSHIFT_URL: "OPENSHIFT-MASTER"
+  OPENSHIFT_USER: "developer"
+  OPENSHIFT_PASSWORD: "openshift"
+  OPENSHIFT_DOCS_BASE: "https://docs.openshift.com/container-platform/3.9"
+  NEXUS_URL: "http://nexus.lab-infra.svc:8081/repository/maven-all-public/"
+  GIT_HOSTNAME: "gogs-lab-infra.192.168.99.100.nip.io"
+  GIT_SERVER_INTERNAL_URL: "http://gogs.lab-infra.svc:3000"
+  GIT_USER: "developer"
+  GIT_PASSWORD: "openshift"
+  PROJECT_SUFFIX: ""
+  PROJECTS_EXIST: "true"
+
+modules:
+  activate:
+  - devops-intro
+  - create-dev
+  - add-pipeline
+  - add-webhook
+  - create-stage
+  - automate-extrnal-db
+  - create-prod
+  - advanced-deploy
