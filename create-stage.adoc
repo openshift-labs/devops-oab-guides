@@ -2,16 +2,16 @@
 
 Change to the `cd-infra` repository working copy:
 
-[source,shell]
+[source,shell,role=copypaste]
 ----
-$ cd cd-infra
+cd cd-infra
 ----
 
 Create a Jenkinsfile for the release pipeline:
 
-[source,shell]
+[source,shell,role=copypaste]
 ----
-$ cat <<'EOF' > Jenkinsfile.release
+cat <<'EOF' > Jenkinsfile.release
 def releaseTag
 
 pipeline {
@@ -89,27 +89,27 @@ EOF
 
 Add the Jenkinsfile to `cd-infra` git repository:
 
-[source,shell]
+[source,shell,role=copypaste]
 ----
-$ git add Jenkinsfile.release
-$ git commit -m "release pipeline added"
-$ git push origin master
+git add Jenkinsfile.release
+git commit -m "release pipeline added"
+git push origin master
 ----
 
 Release process invovles creating Git releases and tags in Gogs. Create a secret to hold the credentials for creating 
 tags in Gogs (explain secret sync in Jenkins):
 
-[source,shell]
+[source,shell,role=copypaste]
 ----
-$ oc create secret generic gogs-credentials --from-literal=username={{GIT_USER}} --from-literal=password={{GIT_PASSWORD}}
-$ oc label secret gogs-credentials credential.sync.jenkins.openshift.io=true
+oc create secret generic gogs-credentials --from-literal=username={{GIT_USER}} --from-literal=password={{GIT_PASSWORD}}
+oc label secret gogs-credentials credential.sync.jenkins.openshift.io=true
 ----
 
 Create the OpenShift pipeline definition to use the Jenkins file
 
-[source,shell]
+[source,shell,role=copypaste]
 ----
-$ cat <<'EOF' > ~/pipeline-catalog-release.yml
+cat <<'EOF' > ~/pipeline-catalog-release.yml
 apiVersion: build.openshift.io/v1
 kind: BuildConfig
 metadata:
@@ -143,7 +143,7 @@ EOF
 
 Create an OpenShift pipeline:
 
-[source,shell]
+[source,shell,role=copypaste]
 ----
 oc create -f ~/pipeline-catalog-release.yml
 ----
