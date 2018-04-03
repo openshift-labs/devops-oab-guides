@@ -1,19 +1,42 @@
-## Create CI/CD Pipeline
+## Automate Build and Deployment with Pipelines
+
+Disable the automatic deployment triggers so that the Jenkins pipeline can control when deployment 
+should take place:
 
 [source,shell]
 ----
+$ oc set triggers dc/catalog --manual -n dev{{PROJECT_SUFFIX}}
+----
 
-oc set triggers dc/catalog --manual -n dev{{PROJECT_SUFFIX}}
+Switch the default project to `cicd{{PROJECT_SUFFIX}}` for convenience:
 
-oc project cicd{{PROJECT_SUFFIX}}
-oc new-app jenkins-persistent
+[source,shell]
+----
+$ oc project cicd{{PROJECT_SUFFIX}}
+----
 
-# Create cd-infra repo in Gogs
+Deploy a Jenkins container:
 
-git clone {{GIT_SERVER_URL}}/{{GIT_USER}}/cd-infra.git
-cd cd-infra
+[source,shell]
+----
+$ oc new-app jenkins-persistent
+----
 
-cat <<'EOF' > Jenkinsfile.catalog-build
+Create a Git repository in Gogs to store the pipeline definitions in order to honor infrastructure-as-code: `cd-infra`
+
+Clone the `cd-infra` repo into your workspace:
+
+[source,shell]
+----
+$ git clone http://{{GIT_USER}}:{{GIT_PASSWORD}}@{{GIT_HOSTNAME}}/{{GIT_USER}}/cd-infra.git
+----
+
+Create a Jenkinsfile to build and deploy Catalog into the DEV environment:
+
+[source,shell]
+----
+$ cd cd-infra
+$ cat <<'EOF' > Jenkinsfile.catalog-build
 pipeline {
   agent {
       label 'maven'
@@ -21,7 +44,7 @@ pipeline {
   stages {
     stage('Build JAR') {
       steps {
-        git url: '{{GIT_SERVER_URL}}/{{GIT_USER}}/catalog-spring-boot.git'
+        git url: 'http://{{GIT_HOSTNAME}}/{{GIT_USER}}/catalog-spring-boot.git'
         sh "cp .settings.xml ~/.m2/settings.xml"
         sh "mvn package"
       }
@@ -63,15 +86,58 @@ pipeline {
   }
 }
 EOF
-
-git add Jenkinsfile.catalog-build
-git commit -m "build pipeline added"
-git push origin master
-
-oc new-build . --name=catalog-build --strategy=pipeline
-oc cancel-build bc/catalog-build 
-oc patch bc catalog-release  -p '{"spec":{"strategy":{"jenkinsPipelineStrategy":{"jenkinsfilePath":"Jenkinsfile.catalog-build"}}}}'
-oc set env bc/catalog-build NEXUS_URL=http://nexus.lab-infra.svc:8081 DEV_PROJECT=dev{{PROJECT_SUFFIX}} 
 ----
 
 
+Add the Jenkinsfile to the `cd-infra` git repository:
+
+[source,shell]
+----
+$ git add Jenkinsfile.catalog-build
+$ git commit -m "build pipeline added"
+$ git push origin master
+----
+
+
+Create the OpenShift pipeline definition to use the Jenkins file
+
+[source,shell]
+----
+$ cat <<'EOF' > ~/pipeline-catalog-build.yml
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: catalog-build
+spec:
+  runPolicy: Serial
+  source:
+    git:
+      ref: master
+      uri: "{{GIT_HOSTNAME}}/{{GIT_USER}}/cd-infra.git"
+    type: Git
+  strategy:
+    jenkinsPipelineStrategy:
+      env:
+        - name: NEXUS_URL
+          value: "{{NEXUS_URL}}"
+        - name: DEV_PROJECT
+          value: "dev{{PROJECT_SUFFIX}}"
+      jenkinsfilePath: Jenkinsfile.catalog-build
+    type: JenkinsPipeline
+  triggers:
+    - github:
+        secret: CqPGlXcKJXXqKxW4Ye6z
+      type: GitHub
+    - generic:
+        secret: 4LXwMdx9vhQY4WXbLcFR
+      type: Generic
+    - type: ConfigChange
+EOF
+----
+
+Create an OpenShift pipeline:
+
+[source,shell]
+----
+oc create -f ~/pipeline-catalog-build.yml
+----
