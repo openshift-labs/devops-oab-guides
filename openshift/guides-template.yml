@@ -15,24 +15,6 @@ parameters:
   name: GIT_REF
   required: true
   value: master
-- displayName: OpenShift Master
-  name: OPENSHIFT_MASTER
-  required: true
-- displayName: OpenShift Accounts Format
-  name: USER_FORMAT
-  required: true
-  value: userXX
-- displayName: OpenShift Accounts Password
-  name: USER_PASSWORDS
-  required: true
-  value: "[PROVIDED BY INSTRUCTOR]"
-- displayName: User Project Suffix
-  name: PROJECT_SUFFIX
-  required: true
-  value: XX
-- displayName: Gogs Git Server
-  name: GOGS_SERVER
-  required: true
 objects:
 - apiVersion: v1
   kind: DeploymentConfig
@@ -162,20 +144,22 @@ objects:
         url: https://raw.githubusercontent.com/openshift-labs/devops-oab-guides/${GIT_REF}
       
       vars:
-        OPENSHIFT_URL: "${OPENSHIFT_MASTER}"
-        OPENSHIFT_USER: "${USER_FORMAT}"
-        OPENSHIFT_PASSWORD: "${USER_PASSWORDS}"
+        OPENSHIFT_URL: "OPENSHIFT-MASTER"
+        OPENSHIFT_USER: "developer"
+        OPENSHIFT_PASSWORD: "openshift"
+        PROD_URL: "PROD-OPENSHIFT-MASTER"
+        PROD_USER: "developer"
+        PROD_PASSWORD: "openshift"
+        PROD_REGISTRY: "PROD-REGISTRY"
         OPENSHIFT_DOCS_BASE: "https://docs.openshift.com/container-platform/3.9"
         NEXUS_URL: "http://nexus.lab-infra.svc:8081/repository/maven-all-public/"
-        GIT_SERVER_URL: "${GOGS_SERVER}"
+        GIT_HOSTNAME: "gogs-lab-infra.192.168.99.100.nip.io"
         GIT_SERVER_INTERNAL_URL: "http://gogs.lab-infra.svc:3000"
-        GIT_SERVER_TYPE: "gogs"
         GIT_USER: "developer"
         GIT_PASSWORD: "openshift"
-        PROJECT_SUFFIX: "${PROJECT_SUFFIX}"
-        CART_ROUTE: "CART-ROUTE"
-        CART_BLUE_ROUTE: "CART-BLUE-ROUTE"
-        CART_GREEN_ROUTE: "CART-GREEN-ROUTE"
+        PROJECT_SUFFIX: ""
+        PROJECTS_EXIST: "true"
+        PROD_USERNAME: "developer"
 
       modules:
         activate:

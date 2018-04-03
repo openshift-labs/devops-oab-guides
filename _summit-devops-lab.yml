@@ -8,6 +8,10 @@ vars:
   OPENSHIFT_URL: "OPENSHIFT-MASTER"
   OPENSHIFT_USER: "developer"
   OPENSHIFT_PASSWORD: "openshift"
+  PROD_URL: "PROD-OPENSHIFT-MASTER"
+  PROD_USER: "developer"
+  PROD_PASSWORD: "openshift"
+  PROD_REGISTRY: "PROD-REGISTRY"
   OPENSHIFT_DOCS_BASE: "https://docs.openshift.com/container-platform/3.9"
   NEXUS_URL: "http://nexus.lab-infra.svc:8081/repository/maven-all-public/"
   GIT_HOSTNAME: "gogs-lab-infra.192.168.99.100.nip.io"
@@ -16,6 +20,7 @@ vars:
   GIT_PASSWORD: "openshift"
   PROJECT_SUFFIX: ""
   PROJECTS_EXIST: "true"
+  PROD_USERNAME: "developer"
 
 modules:
   activate:

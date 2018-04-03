@@ -8,7 +8,7 @@ modules:
   add-webhook:
     name: Run Pipeline on Every Change
   create-stage:
-    name: Create STAGE Environment
+    name: Release to STAGE Environment
   automate-extrnal-db:
     name: Provisoning External Databases
   create-prod:
@@ -17,31 +17,3 @@ modules:
     name: Promote Builds to Production
   advanced-deploy:
     name: Advanced Zerodowntime Deploy
-  # devops-simple-pipeline:
-  #   name: Creating a Simple CI/CD Pipeline
-  #   requires:
-  #     - devops-deployment-envs
-  # devops-pipeline-scm:
-  #   name: Pipeline Definition as Code
-  #   requires:
-  #     - devops-deployment-envs
-  # devops-promotion:
-  #   name: Application Promotion Between Environments
-  #   requires:
-  #     - devops-pipeline-scm
-  # devops-webhook:
-  #   name: Running the CI/CD Pipeline on Every Change
-  #   requires:
-  #     - devops-promotion
-  # devops-zerodowntime-manual:
-  #   name: Zero-Downtime Deployment to Production
-  #   requires:
-  #     - devops-webhook
-  # devops-zerodowntime-automated:
-  #   name: Automated Zero-Downtime Deployment with CI/CD Pipelines
-  #   requires:
-  #     - devops-zerodowntime-manual
-  # devops-deploy-jenkins:
-  #   name: Deploying Jenkins Manually
-  # devops-custom-slave:
-  #   name: Creating Custom Jenkins Slave Pods
