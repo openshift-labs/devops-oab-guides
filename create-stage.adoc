@@ -6,7 +6,7 @@
 # Create build
 
 cat <<'EOF' > Jenkinsfile.release
-def releaseTag,majorVersion
+def releaseTag
 
 pipeline {
   agent {
@@ -20,10 +20,7 @@ pipeline {
         sh "git config --local user.name 'jenkins'"
         
         script {
-          pomVersion = readMavenPom().getVersion().replace("-SNAPSHOT", "")
-          commitId = sh(returnStdout: true, script: "git rev-parse --short HEAD").trim()
-          releaseTag = pomVersion + '-' + commitId
-		      majorVersion = pomVersion.replaceAll(/(\d+\.\d+)\..*/, '$1')
+          releaseTag = readMavenPom().getVersion().replace("-SNAPSHOT", "")
         }
       }
     }
@@ -45,11 +42,9 @@ pipeline {
       steps {
         script {
           openshift.withCluster() {
-            echo "Releasing image versions ${releaseTag} and ${majorVersion}"
+            echo "Releasing image version ${releaseTag}"
             openshift.tag("${openshift.project()}/catalog:latest", "${openshift.project()}/catalog:${releaseTag}")
-            openshift.tag("${openshift.project()}/catalog:latest", "${openshift.project()}/catalog:${majorVersion}")
             openshift.tag("${openshift.project()}/web-ui:latest", "${openshift.project()}/web-ui:${releaseTag}")
-            openshift.tag("${openshift.project()}/web-ui:latest", "${openshift.project()}/web-ui:${majorVersion}")
           }
         }
       }
