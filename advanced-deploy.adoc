@@ -1,10 +1,18 @@
 ## Zero-downtime Deployments in Production
 
+Change to the `cd-infra` repository working copy:
+
 [source,shell]
 ----
+$ cd cd-infra
+----
 
-cd cd-infra
-cat <<'EOF' > Jenkinsfile.catalog-prod
+
+Create the Jenkinsfile for canary deploy of Catalog to the PROD environment:
+
+[source,shell]
+----
+$ cat <<'EOF' > Jenkinsfile.catalog-prod
 def namespace, releaseTag, prodCluster, prodToken, activeSvc, canarySvc
 
 pipeline {
@@ -122,28 +130,58 @@ pipeline {
   }
 }
 EOF
+----
 
-git add Jenkinsfile.catalog-prod
-git commit -m "canary prod pipeline added"
-git push origin master
+Add the Jenkinsfile to `cd-infra` git repository:
 
-oc new-app . --name=catalog-deploy-prod --strategy=pipeline
-oc cancel-build bc/catalog-deploy-prod
-oc patch bc catalog-deploy-prod  -p '{"spec":{"strategy":{"jenkinsPipelineStrategy":{"jenkinsfilePath":"Jenkinsfile.catalog-prod"}}}}'
-oc set env bc/catalog-deploy-prod PROD_PROJECT=prod{{PROJECT_SUFFIX}} PROD_REGISTRY={{PROD_CLUSTER_REGISTRY}} PROD_MASTER={{PROD_CLUSTER_URL}} 
+[source,shell]
+----
+$ git add Jenkinsfile.catalog-prod
+$ git commit -m "catalog deploy prod pipeline added"
+$ git push origin master
+----
 
+Create the OpenShift pipeline definition to use the Jenkins file
 
-TODO
-* Add a new pipeline for canary release
-  - creates a new deployment for the catalog with the new image version
-  - put 10% traffic of the route split on the new version
-  - pause: manual approval 
-  - manually test in the browser
-  - click on approve
-  - put 50% traffic on new version
-  - paus: manual approval
-  - manual test browser
-  - approve go live 100% traffic
-  - delete old version
-  - test again
-* If cancel, put 100% traffic back on the existing version and delete new version that was in progress
+[source,shell]
+----
+$ cat <<'EOF' > ~/pipeline-catalog-prod.yml
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: catalog-deploy-prod
+spec:
+  runPolicy: Serial
+  source:
+    git:
+      ref: master
+      uri: "{{GIT_HOSTNAME}}/{{GIT_USER}}/cd-infra.git"
+    type: Git
+  strategy:
+    jenkinsPipelineStrategy:
+      env:
+        - name: PROD_REGISTRY
+          value: "{{ prod_registry }}"
+        - name: PROD_MASTER
+          value: "{{ prod_master }}"
+        - name: PROD_PROJECT
+          value: "{{ prod_project }}"
+      jenkinsfilePath: Jenkinsfile.catalog-prod
+    type: JenkinsPipeline
+  triggers:
+    - github:
+        secret: CqPGlXcKJXXqKxW4Ye6z
+      type: GitHub
+    - generic:
+        secret: 4LXwMdx9vhQY4WXbLcFR
+      type: Generic
+    - type: ConfigChange
+EOF
+----
+
+Create an OpenShift pipeline:
+
+[source,shell]
+----
+oc create -f ~/pipeline-catalog-prod.yml
+----
