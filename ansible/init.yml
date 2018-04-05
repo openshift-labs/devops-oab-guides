@@ -12,6 +12,7 @@
     user_count: 10
     user_format: user%02d
     create_prod_project: true
+    openshift_cli: oc
 
   tasks:
     - include_role:
@@ -19,7 +20,7 @@
       tags: always
 
     - name: create lab infra project
-      shell: "oc new-project {{ lab_infra_project }} --display-name='Lab Infra'"
+      shell: "{{ openshift_cli }} new-project {{ lab_infra_project }} --display-name='Lab Infra'"
       ignore_errors: true
       tags: always
 
@@ -65,19 +66,19 @@
     # create user dev,stage and cicd projects
     - name: create cicd,dev and stage projects for {{ user_count }} users
       shell: |
-        oc new-project dev-{{ item }}   --display-name="CoolStore DEV"
-        oc new-project stage-{{ item }} --display-name="CoolStore STAGE"
-        oc new-project cicd-{{ item }}  --display-name="CI/CD"
+        {{ openshift_cli }} new-project dev-{{ item }}   --display-name="CoolStore DEV"
+        {{ openshift_cli }} new-project stage-{{ item }} --display-name="CoolStore STAGE"
+        {{ openshift_cli }} new-project cicd-{{ item }}  --display-name="CI/CD"
 
-        oc policy add-role-to-user admin {{ item }} -n dev-{{ item }}
-        oc policy add-role-to-user admin {{ item }} -n stage-{{ item }}
-        oc policy add-role-to-user admin {{ item }} -n cicd-{{ item }}
+        {{ openshift_cli }} policy add-role-to-user admin {{ item }} -n dev-{{ item }}
+        {{ openshift_cli }} policy add-role-to-user admin {{ item }} -n stage-{{ item }}
+        {{ openshift_cli }} policy add-role-to-user admin {{ item }} -n cicd-{{ item }}
 
-        oc adm policy add-role-to-group admin                system:serviceaccounts:cicd-{{ item }}       -n dev-{{ item }}
-        oc adm policy add-role-to-group admin                system:serviceaccounts:cicd-{{ item }}       -n stage-{{ item }}
-        oc adm policy add-role-to-group system:image-puller  system:serviceaccounts:dev-{{ item }}        -n cicd-{{ item }}
-        oc adm policy add-role-to-group system:image-puller  system:serviceaccounts:stage-{{ item }}      -n cicd-{{ item }}
-        oc adm policy add-role-to-user  system:image-builder system:serviceaccount:dev-{{ item }}:builder -n cicd-{{ item }}
+        {{ openshift_cli }} adm policy add-role-to-group admin                system:serviceaccounts:cicd-{{ item }}       -n dev-{{ item }}
+        {{ openshift_cli }} adm policy add-role-to-group admin                system:serviceaccounts:cicd-{{ item }}       -n stage-{{ item }}
+        {{ openshift_cli }} adm policy add-role-to-group system:image-puller  system:serviceaccounts:dev-{{ item }}        -n cicd-{{ item }}
+        {{ openshift_cli }} adm policy add-role-to-group system:image-puller  system:serviceaccounts:stage-{{ item }}      -n cicd-{{ item }}
+        {{ openshift_cli }} adm policy add-role-to-user  system:image-builder system:serviceaccount:dev-{{ item }}:builder -n cicd-{{ item }}
       with_sequence: start=1 end={{ user_count|int }} format="{{ user_format }}"
       when: user_count|int > 1
       ignore_errors: true
@@ -85,15 +86,15 @@
 
     - name: create cicd, dev and stage projects
       shell: |
-        oc new-project dev   --display-name="CoolStore DEV"
-        oc new-project stage --display-name="CoolStore STAGE"
-        oc new-project cicd  --display-name="CI/CD"
+        {{ openshift_cli }} new-project dev   --display-name="CoolStore DEV"
+        {{ openshift_cli }} new-project stage --display-name="CoolStore STAGE"
+        {{ openshift_cli }} new-project cicd  --display-name="CI/CD"
         
-        oc adm policy add-role-to-group admin                system:serviceaccounts:cicd        -n dev
-        oc adm policy add-role-to-group admin                system:serviceaccounts:cicd        -n stage
-        oc adm policy add-role-to-group system:image-puller  system:serviceaccounts:dev         -n cicd
-        oc adm policy add-role-to-group system:image-puller  system:serviceaccounts:stage       -n cicd
-        oc adm policy add-role-to-user  system:image-builder system:serviceaccount:dev:builder  -n cicd
+        {{ openshift_cli }} adm policy add-role-to-group admin                system:serviceaccounts:cicd        -n dev
+        {{ openshift_cli }} adm policy add-role-to-group admin                system:serviceaccounts:cicd        -n stage
+        {{ openshift_cli }} adm policy add-role-to-group system:image-puller  system:serviceaccounts:dev         -n cicd
+        {{ openshift_cli }} adm policy add-role-to-group system:image-puller  system:serviceaccounts:stage       -n cicd
+        {{ openshift_cli }} adm policy add-role-to-user  system:image-builder system:serviceaccount:dev:builder  -n cicd
       when: user_count|int <= 1
       ignore_errors: true
       tags: user_projects
@@ -101,9 +102,9 @@
     # create prod project
     - name: create prod project for {{ user_count }} users
       shell: |
-        oc new-project prod-{{ item }} --display-name="CoolStore PROD"
-        oc policy add-role-to-user admin {{ item }} -n prod-{{ item }}
-        oc adm policy add-role-to-group system:image-puller system:serviceaccounts:prod-{{ item }} -n cicd-{{ item }}
+        {{ openshift_cli }} new-project prod-{{ item }} --display-name="CoolStore PROD"
+        {{ openshift_cli }} policy add-role-to-user admin {{ item }} -n prod-{{ item }}
+        {{ openshift_cli }} adm policy add-role-to-group system:image-puller system:serviceaccounts:prod-{{ item }} -n cicd-{{ item }}
       with_sequence: start=1 end={{ user_count|int }} format="{{ user_format }}"
       when: 
         - user_count|int > 1 
@@ -113,9 +114,9 @@
       
     - name: create prod project on same cluster
       shell: |
-        oc new-project prod --display-name="CoolStore PROD"
-        oc adm policy add-role-to-group admin system:serviceaccounts:cicd -n prod
-        oc adm policy add-role-to-group system:image-puller system:serviceaccounts:prod -n cicd
+        {{ openshift_cli }} new-project prod --display-name="CoolStore PROD"
+        {{ openshift_cli }} adm policy add-role-to-group admin system:serviceaccounts:cicd -n prod
+        {{ openshift_cli }} adm policy add-role-to-group system:image-puller system:serviceaccounts:prod -n cicd
       when: 
         - user_count|int <= 1 
         - create_prod_project|bool
@@ -124,21 +125,21 @@
 
     # create jenkins slave config
     - name: create jenkins slave configmap for {{ user_count }} users
-      shell: "oc apply -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/jenkins-slave-skopeo.yml -n cicd-{{ item }}"
+      shell: "{{ openshift_cli }} apply -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/jenkins-slave-skopeo.yml -n cicd-{{ item }}"
       with_sequence: start=1 end={{ user_count|int }} format="{{ user_format }}"
       when: user_count|int > 1 
       ignore_errors: true
       tags: user_projects
 
     - name: create jenkins slave configmap 
-      shell: "oc apply -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/jenkins-slave-skopeo.yml -n cicd"
+      shell: "{{ openshift_cli }} apply -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/jenkins-slave-skopeo.yml -n cicd"
       when: user_count|int <= 1 
       ignore_errors: true
       tags: user_projects
 
     # validate cluster
     - name: check openjdk image stream installed
-      shell: "oc get is redhat-openjdk18-openshift -n openshift"
+      shell: "{{ openshift_cli }} get is redhat-openjdk18-openshift -n openshift"
       register: jdk_imagestream_result
       ignore_errors: true
       tags: validate
@@ -148,6 +149,6 @@
         msg:
           - '### WARNING ###'
           - 'OpenJDK image stream is not installed. Run the following as cluster admin:'
-          - 'oc create -n openshift -f https://raw.githubusercontent.com/openshift/openshift-ansible/release-3.9/roles/openshift_examples/files/examples/v3.9/xpaas-streams/jboss-image-streams.json'
+          - '{{ openshift_cli }} create -n openshift -f https://raw.githubusercontent.com/openshift/openshift-ansible/release-3.9/roles/openshift_examples/files/examples/v3.9/xpaas-streams/jboss-image-streams.json'
       when: jdk_imagestream_result|failed   
       tags: validate     
