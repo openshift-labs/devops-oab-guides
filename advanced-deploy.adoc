@@ -2,17 +2,17 @@
 
 Change to the `cd-infra` repository working copy:
 
-[source,shell]
+[source,shell,role=copypaste]
 ----
-$ cd cd-infra
+cd cd-infra
 ----
 
 
 Create the Jenkinsfile for canary deploy of Catalog to the PROD environment:
 
-[source,shell]
+[source,shell,role=copypaste]
 ----
-$ cat <<'EOF' > Jenkinsfile.catalog-prod
+cat <<'EOF' > Jenkinsfile.catalog-prod
 def namespace, releaseTag, prodCluster, prodToken, activeSvc, canarySvc
 
 pipeline {
@@ -134,18 +134,18 @@ EOF
 
 Add the Jenkinsfile to `cd-infra` git repository:
 
-[source,shell]
+[source,shell,role=copypaste]
 ----
-$ git add Jenkinsfile.catalog-prod
-$ git commit -m "catalog deploy prod pipeline added"
-$ git push origin master
+git add Jenkinsfile.catalog-prod
+git commit -m "catalog deploy prod pipeline added"
+git push origin master
 ----
 
 Create the OpenShift pipeline definition to use the Jenkins file
 
-[source,shell]
+[source,shell,role=copypaste]
 ----
-$ cat <<'EOF' > ~/pipeline-catalog-prod.yml
+cat <<'EOF' > ~/pipeline-catalog-prod.yml
 apiVersion: build.openshift.io/v1
 kind: BuildConfig
 metadata:
@@ -181,7 +181,7 @@ EOF
 
 Create an OpenShift pipeline:
 
-[source,shell]
+[source,shell,role=copypaste]
 ----
 oc create -f ~/pipeline-catalog-prod.yml
 ----

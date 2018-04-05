@@ -9,9 +9,9 @@ software delivery lifecycle and deploy the application into these deployment env
 The first thing we want to do to ensure that the `oc` command line tools was installed and successfully 
 added to your path. In order to login, you can use the `oc` command and then specify the server that you want to authenticate to. Issue the following command:
 
-[source,shell]
+[source,shell,role=copypaste]
 ----
-$ oc login {{OPENSHIFT_URL}}
+oc login {{OPENSHIFT_URL}}
 ----
 
 Enter *Y* to use a potentially insecure connection. The reason you received this message is because 
@@ -37,9 +37,9 @@ Projects act as a "wrapper" around all the application services and endpoints yo
 (or your teams) are using for your work. You can see the list of projects 
 you have access to using the following command:
 
-[source,shell]
+[source,shell,role=copypaste]
 ----
-$ oc get projects
+oc get projects
 ----
 
 There a few projects created for you in order to use during the following labs. To simplify 
@@ -48,9 +48,9 @@ as the default project when running OpenShift CLI commands.
 
 Specify the DEV project as the active project:
 
-[source,shell]
+[source,shell,role=copypaste]
 ----
-$ oc project dev{{PROJECT_SUFFIX}}
+oc project dev{{PROJECT_SUFFIX}}
 ----
 
 #### OpenShift Web Console
@@ -83,12 +83,12 @@ projects that your user has permission to work with.
 
 Download source code for the CoolStore application from GitHub:
 
-[source,shell]
+[source,shell,role=copypaste]
 ----
-$ wget https://github.com/openshift-labs/devops-oab-labs/archive/master.tar.gz
-$ tar xvfz master.tar.gz
-$ mv devops-oab-labs-master/* .
-$ rm -rf devops-oab-labs-master
+wget https://github.com/openshift-labs/devops-oab-labs/archive/master.tar.gz
+tar xvfz master.tar.gz
+mv devops-oab-labs-master/* .
+rm -rf devops-oab-labs-master
 ----
 
 
@@ -102,16 +102,16 @@ Create a Git repository for the Catalog service: `catalog-spring-boot`
 
 Import the Catalog service source code into the Git repository on Gogs:
 
-[source,shell]
+[source,shell,role=copypaste]
 ----
-$ cd catalog-spring-boot
-$ git config --global user.name "rhdeveloper"
-$ git config --global user.email "rhdeveloper@me.com"
-$ git init
-$ git add . --all
-$ git commit -m "initial add"
-$ git remote add origin http://{{GIT_USER}}:{{GIT_PASSWORD}}@{{GIT_HOSTNAME}}/{{GIT_USER}}/catalog-spring-boot.git
-$ git push -u origin master
+cd catalog-spring-boot
+git config --global user.name "rhdeveloper"
+git config --global user.email "rhdeveloper@me.com"
+git init
+git add . --all
+git commit -m "initial add"
+git remote add origin http://{{GIT_USER}}:{{GIT_PASSWORD}}@{{GIT_HOSTNAME}}/{{GIT_USER}}/catalog-spring-boot.git
+git push -u origin master
 ----
 
 
@@ -119,14 +119,14 @@ Create a Git repository for the Web UI: `web-nodejs`
 
 Import the Web UI source code into the Git repository on Gogs:
 
-[source,shell]
+[source,shell,role=copypaste]
 ----
-$ cd ../web-nodejs
-$ git init
-$ git add . --all
-$ git commit -m "initial add"
-$ git remote add origin http://{{GIT_USER}}:{{GIT_PASSWORD}}@{{GIT_HOSTNAME}}/{{GIT_USER}}/web-nodejs.git
-$ git push -u origin master
+cd ../web-nodejs
+git init
+git add . --all
+git commit -m "initial add"
+git remote add origin http://{{GIT_USER}}:{{GIT_PASSWORD}}@{{GIT_HOSTNAME}}/{{GIT_USER}}/web-nodejs.git
+git push -u origin master
 ----
 
 
@@ -135,17 +135,17 @@ deployed from there across various environments.
 
 Create the image streams for Catalog and Web UI (note the `-n` flag):
 
-[source,shell]
+[source,shell,role=copypaste]
 ----
-$ oc create -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/catalog-is.yaml -n cicd{{PROJECT_SUFFIX}}
-$ oc create -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/web-is.yaml -n cicd{{PROJECT_SUFFIX}}
+oc create -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/catalog-is.yaml -n cicd{{PROJECT_SUFFIX}}
+oc create -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/web-is.yaml -n cicd{{PROJECT_SUFFIX}}
 ----
 
 Deploy the Catalog service into the DEV environment:
 
-[source,shell]
+[source,shell,role=copypaste]
 ----
-$ oc new-app -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/catalog-template.yaml \
+oc new-app -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/catalog-template.yaml \
       --param=GIT_URI=http://{{GIT_HOSTNAME}}/{{GIT_USER}}/catalog-spring-boot.git \
       --param=MAVEN_MIRROR_URL={{NEXUS_URL}} \
       --param=IMAGE_NAMESPACE=cicd{{PROJECT_SUFFIX}}
@@ -153,9 +153,9 @@ $ oc new-app -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs
 
 Deploy the Web UI service into the DEV environment:
 
-[source,shell]
+[source,shell,role=copypaste]
 ----
-$ oc new-app -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/web-template.yaml \
+oc new-app -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/web-template.yaml \
       --param=GIT_URI=http://{{GIT_HOSTNAME}}/{{GIT_USER}}/web-nodejs.git \
       --param=IMAGE_NAMESPACE=cicd{{PROJECT_SUFFIX}} 
 ----

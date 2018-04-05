@@ -3,46 +3,46 @@
 Disable the automatic deployment triggers so that the Jenkins pipeline can control when deployment 
 should take place:
 
-[source,shell]
+[source,shell,role=copypaste]
 ----
-$ oc set triggers dc/catalog --manual -n dev{{PROJECT_SUFFIX}}
+oc set triggers dc/catalog --manual -n dev{{PROJECT_SUFFIX}}
 ----
 
 Switch the default project to `cicd{{PROJECT_SUFFIX}}` for convenience:
 
-[source,shell]
+[source,shell,role=copypaste]
 ----
-$ oc project cicd{{PROJECT_SUFFIX}}
+oc project cicd{{PROJECT_SUFFIX}}
 ----
 
 Deploy a Jenkins container:
 
-[source,shell]
+[source,shell,role=copypaste]
 ----
-$ oc new-app jenkins-persistent
+oc new-app jenkins-persistent
 ----
 
 Create a Git repository in Gogs to store the pipeline definitions in order to honor infrastructure-as-code: `cd-infra`
 
 Clone the `cd-infra` repo into your workspace:
 
-[source,shell]
+[source,shell,role=copypaste]
 ----
-$ git clone http://{{GIT_USER}}:{{GIT_PASSWORD}}@{{GIT_HOSTNAME}}/{{GIT_USER}}/cd-infra.git
+git clone http://{{GIT_USER}}:{{GIT_PASSWORD}}@{{GIT_HOSTNAME}}/{{GIT_USER}}/cd-infra.git
 ----
 
 Change to the `cd-infra` repository working copy:
 
-[source,shell]
+[source,shell,role=copypaste]
 ----
-$ cd cd-infra
+cd cd-infra
 ----
 
 Create a Jenkinsfile to build and deploy Catalog into the DEV environment:
 
-[source,shell]
+[source,shell,role=copypaste]
 ----
-$ cat <<'EOF' > Jenkinsfile.catalog-build
+cat <<'EOF' > Jenkinsfile.catalog-build
 pipeline {
   agent {
       label 'maven'
@@ -97,19 +97,19 @@ EOF
 
 Add the Jenkinsfile to the `cd-infra` git repository:
 
-[source,shell]
+[source,shell,role=copypaste]
 ----
-$ git add Jenkinsfile.catalog-build
-$ git commit -m "build pipeline added"
-$ git push origin master
+git add Jenkinsfile.catalog-build
+git commit -m "build pipeline added"
+git push origin master
 ----
 
 
 Create the OpenShift pipeline definition to use the Jenkins file
 
-[source,shell]
+[source,shell,role=copypaste]
 ----
-$ cat <<'EOF' > ~/pipeline-catalog-build.yml
+cat <<'EOF' > ~/pipeline-catalog-build.yml
 apiVersion: build.openshift.io/v1
 kind: BuildConfig
 metadata:
@@ -143,7 +143,7 @@ EOF
 
 Create an OpenShift pipeline:
 
-[source,shell]
+[source,shell,role=copypaste]
 ----
 oc create -f ~/pipeline-catalog-build.yml
 ----
