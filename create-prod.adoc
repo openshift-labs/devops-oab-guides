@@ -6,45 +6,45 @@ Login to PROD:
 * Username: `{{PROD_USER}}`
 * Password: `{{PROD_PASSWORD}}`
 
-[source,shell]
+[source,shell,role=copypaste]
 ----
-$ oc login {{PROD_URL}}
+oc login {{PROD_URL}}
 ----
 
 Get the PROD token:
 
-[source,shell]
+[source,shell,role=copypaste]
 ----
-$ oc whoami -t
+oc whoami -t
 ----
 
 Login back into the DEV cluster:
 
-[source,shell]
+[source,shell,role=copypaste]
 ----
-$ oc login {{OPENSHIFT_URL}}
+oc login {{OPENSHIFT_URL}}
 ----
 
 Create a secret to hold PROD environment credentials which are needed in the pipeline. 
 
-[source,shell]
+[source,shell,role=copypaste]
 ----
-$ oc create secret generic prod-credentials --from-literal=username={{PROD_USERNAME}} --from-literal=password=PROD_TOKEN
-$ oc label secret prod-credentials credential.sync.jenkins.openshift.io=true
+oc create secret generic prod-credentials --from-literal=username={{PROD_USERNAME}} --from-literal=password=PROD_TOKEN
+oc label secret prod-credentials credential.sync.jenkins.openshift.io=true
 ----
 
 Change to the `cd-infra` repository working copy:
 
-[source,shell]
+[source,shell,role=copypaste]
 ----
-$ cd cd-infra
+cd cd-infra
 ----
 
 Create the Jenkinsfile for creating the PROD environment:
 
-[source,shell]
+[source,shell,role=copypaste]
 ----
-$ cat <<'EOF' > Jenkinsfile.create-prod
+cat <<'EOF' > Jenkinsfile.create-prod
 def namespace, releaseTag, prodCluster, prodProject, prodToken
 
 pipeline {
@@ -124,18 +124,18 @@ EOF
 
 Add the Jenkinsfile to `cd-infra` git repository:
 
-[source,shell]
+[source,shell,role=copypaste]
 ----
-$ git add Jenkinsfile.create-prod
-$ git commit -m "create prod pipeline added"
-$ git push origin master
+git add Jenkinsfile.create-prod
+git commit -m "create prod pipeline added"
+git push origin master
 ----
 
 Create the OpenShift pipeline definition to use the Jenkins file
 
-[source,shell]
+[source,shell,role=copypaste]
 ----
-$ cat <<'EOF' > ~/pipeline-create-prod.yml
+cat <<'EOF' > ~/pipeline-create-prod.yml
 apiVersion: build.openshift.io/v1
 kind: BuildConfig
 metadata:
@@ -171,7 +171,7 @@ EOF
 
 Create an OpenShift pipeline:
 
-[source,shell]
+[source,shell,role=copypaste]
 ----
 oc create -f ~/pipeline-create-prod.yml
 ----
