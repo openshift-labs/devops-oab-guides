@@ -92,7 +92,7 @@ rm -rf devops-oab-labs-master
 ----
 
 
-Register an account in Gogs: http://{{GIT_HOSTNAME}}
+Register an account on the git server: http://{{GIT_HOSTNAME}}
 
 * Username: `{{GIT_USER}}`
 * Email: `{{GIT_USER}}@gogs.com`

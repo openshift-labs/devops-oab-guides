@@ -1,13 +1,27 @@
 ## Release Catalog Service to STAGE Environment
 
-Change to the `cd-infra` repository working copy:
+In previous labs, you built and deployed the Coolstore applications with the Catalog and Web containers 
+into the *Coolstore DEV* project. The development phase of application generally involves many iterations 
+and builds until we ready with a chunk of functionality that can be deployed into production.
+
+In this lab, you will build the next step in the application lifecycle by releasing the application into 
+the staging environment for further tests to make sure the release is eligible for production deployments.
+
+### Define the Catalog Release Process
+
+The first step for making a release is to create a pipeline that releases the Catalog service code by 
+creating appropriate tags in the git repository so that the source code in the release can easily be traced back, 
+as well as creating a binary release of the Catalog service in form of a jar file which will be used across 
+all environments and deployments.
+
+In order to create a release pipeline, first go to the `cd-infra` directory:
 
 [source,shell,role=copypaste]
 ----
 cd cd-infra
 ----
 
-Create a Jenkinsfile for the release pipeline:
+And then create a Jenkinsfile with the following content:
 
 [source,shell,role=copypaste]
 ----
@@ -55,39 +69,25 @@ pipeline {
         }
       }
     }    
-    stage('Tear-down STAGE') {
-      steps {
-        script {
-          openshift.withCluster() {
-            openshift.withProject(env.STAGE_PROJECT) {
-              openshift.raw('delete all,cm,pvc --all')
-            }
-          }
-        }
-      }
-    }    
-    stage('Deploy STAGE') {
-      steps {
-        script {
-          openshift.withCluster() {
-            def imageNamespace = openshift.project()
-            openshift.withProject(env.STAGE_PROJECT) {
-              def template = 'https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/coolstore-template.yaml'
-              openshift.apply(
-                openshift.process("-f", template, "-p", "IMAGE_VERSION=${releaseTag}", "-p", "IMAGE_NAMESPACE=${imageNamespace}")
-              )
-            }
-          }
-        }
-      }
-    }    
   }
 }
 EOF
 ----
 
+The above pipeline performs the following steps:
 
-Add the Jenkinsfile to `cd-infra` git repository:
+* Checks out the source code of the Catalog service form the git repository
+* Builds the Catalog service jar archive 
+* Creates a git release in the Catalog git repository using the version number in the `pom.xml`
+* Stores the Catalog service jar archive for the release in Nexus Maven Repository using the version number in the `pom.xml`
+* Increases the Catalog service version in `pom.xml` and sets it to `SNAPSHOT`. You can learn more about Maven snapshot handling here.
+* Tags the Catalog container images with the release version using the version number in the `pom.xml`
+
+The container image that is tagged in the release process will be used across all environments for deployments 
+to guarantee that all tests and verifications are performed on the exact same version. Build once, run anywhere! 
+
+Store the `Jenkinsfile.release` pipeline in the `cd-infra` git repository so that you can control the 
+history of changes on the pipeline the same way that you manage the source code versions:
 
 [source,shell,role=copypaste]
 ----
@@ -96,8 +96,24 @@ git commit -m "release pipeline added"
 git push origin master
 ----
 
-Release process invovles creating Git releases and tags in Gogs. Create a secret to hold the credentials for creating 
-tags in Gogs (explain secret sync in Jenkins):
+
+### Automate Releases with Pipelines
+
+As mentioned above, the release process creates a git release in the git repository and tags the source code with 
+the release version. In order for Jenkins to do that, it has to have access to the git credentials with suitable 
+permissions to create tags and release in the repository. Although usually a separeate git account is created for 
+Jenkins, you can use your own credentials in this lab. 
+
+But how can you tell Jenkins to use your git credentials without exposing your password and storing it in the git 
+repository? 
+
+The answer is simple, {{OPENSHIFT_DOCS_BASE}}/dev_guide/secrets.html[OpenShift Secrets]! Secrets in OpenShift enable 
+storing encrypted sensitive data like credentials without exposing the data in the git repository or even on disk or during 
+transmit over the network for that matter. The Jenkins instance on OpenShift uses a series of plugins to automatically 
+create Jenkins Credentials based on the secrets defined by the user which are then used in the pipeline for various 
+purposes such as create releases in the git repository. 
+
+Create a secret to hold your git credentials:
 
 [source,shell,role=copypaste]
 ----
@@ -105,11 +121,20 @@ oc create secret generic gogs-credentials --from-literal=username={{GIT_USER}} -
 oc label secret gogs-credentials credential.sync.jenkins.openshift.io=true
 ----
 
-Create the OpenShift pipeline definition to use the Jenkins file
+Notice that due to security considerations, not all secrets are injected into Jenkins as Jenkins Credentials. The second 
+command above, annotates the secret to tell OpenShift that this secret should be injected into Jenkins to be used 
+within the pipeline.
+
+Review the `withCredentials(...)` construct in the above pipeline to see how OpenShift secrets can be used as Jenkins 
+credentials within a Jenkins.
+
+
+You can now create an OpenShift pipeline that refers to the `Jenkinsfile.release` that you have stored in the git 
+repository. In the *CoolStore DEV* project, click on *Add to Project* > *Import YAML/JSON* and paste the following 
+into the field:
 
 [source,shell,role=copypaste]
 ----
-cat <<'EOF' > ~/pipeline-catalog-release.yml
 apiVersion: build.openshift.io/v1
 kind: BuildConfig
 metadata:
@@ -138,12 +163,95 @@ spec:
         secret: 4LXwMdx9vhQY4WXbLcFR
       type: Generic
     - type: ConfigChange
-EOF
 ----
 
-Create an OpenShift pipeline:
+Click on *Create* to create the pipeline. Notice the `git.uri` and `jenkinsfilePath` fields in the above 
+YAML which specify the git repository where the Jenkinsfile is stored and the exact name of the Jenkinsfile.
+
+
+Go to *Builds* > *Pipelines* to see the pipeline execution in progress. 
+
+After the pipeline is completed successfully (all green, yaay!), go the git repository in your browser to 
+review the git release that is created:
+
+Git server web: http://{{GIT_HOSTNAME}}/{{GIT_USER}}/catalog-spring-boot/releases[http://{{GIT_HOSTNAME}}/{{GIT_USER}}/catalog-spring-boot]
+
+Point your browser to the Nexus Maven Repository to review the binary release of the Catalog service in form 
+of a jar file:
+Nexus Maven Repository: http://{{NEXUS_EXTERNAL_URL}}[http://{{NEXUS_EXTERNAL_URL}}]
+
+
+### Deploy Releases into Staging Environment
+
+After creating the application release, it should then be deployed into the staging environment so that more 
+thorough tests (system integration, performance, user-acceptance, etc) can be performed before deciding if 
+a release can be deployed into production.
+
+The *CoolStore STAGE* project is already created for you and is the staging environment for the CoolStore 
+application.
+
+Extend the release pipeline in order to not only create a release but also create a container image from the 
+binary release catalog and deploy the container image in the staging environment all at once.
+
+If you are comfortable with `vi` text editor, we envy you. Use that and good luck! (don't 
+forget to run `git commit` and `git push`)
+
+If not, use the git server web for editing the `Jenkinsfile.release`:<br/>
+http://{{GIT_HOSTNAME}}/{{GIT_USER}}/cd-infra/Jenkinsfile.release
+
+Click on the pencil icon to edit `Jenkinsfile.release` and add the following `stages` at the 
+end of the release pipeline and click on *Commit* button.
 
 [source,shell,role=copypaste]
 ----
-oc create -f ~/pipeline-catalog-release.yml
+pipeline {
+    ...
+
+    // START-COPY
+
+    stage('Tear-down STAGE') {
+      steps {
+        script {
+          openshift.withCluster() {
+            openshift.withProject(env.STAGE_PROJECT) {
+              openshift.raw('delete all,cm,pvc --all')
+            }
+          }
+        }
+      }
+    }    
+    stage('Deploy STAGE') {
+      steps {
+        script {
+          openshift.withCluster() {
+            def imageNamespace = openshift.project()
+            openshift.withProject(env.STAGE_PROJECT) {
+              def template = 'https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/coolstore-template.yaml'
+              openshift.apply(
+                openshift.process("-f", template, "-p", "IMAGE_VERSION=${releaseTag}", "-p", "IMAGE_NAMESPACE=${imageNamespace}")
+              )
+            }
+          }
+        }
+      }
+    }
+
+    // END-COPY
+
+  }
+}
 ----
+
+The `Tear-down STAGE` and `Deploy STAGE` stages in the pipeline remove the existing deployments in 
+the staging environment and then deploy the new version from scratch in that order. This practices is employed in 
+order to build confidence in the process for building new environments whenever needed without 
+the common reproducibility concerns that often surrounds deployments environment. Need more 
+test and staging environments? They are one click away!
+
+Go to *Builds* > *Pipelines* and start the pipeline again by clicking on the *Start the Pipeline*. 
+
+As the pipeline execution progresses, you will see the latest release gets deployed in the *CoolStore STAGE* 
+environment. 
+
+Point your browser to the Web route url in order to verify the CoolStore app is working as expected in 
+the staging environment.
