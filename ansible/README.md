@@ -19,22 +19,13 @@ Playbook Variables
 |`user_gogs_test`       | `test`        | Test username to create in Gogs |
 |`user_gogs_password`   | `openshift`   | Gogs password to configure for admin and test users |
 |`labs_github_ref`      | `master`      | GitHub branch to user for lab code https://github.com/openshift-labs/devops-oab-labs.git |
-|`user_count`           | 10            | Number of users for generating DEV, STAGE and PROD projects |
-|`user_format`          | `user%02d`    | [printf style format](https://en.wikipedia.org/wiki/Printf_format_string) for OpenShift users that __already exist__ in the cluster |
-|`create_prod_project`  | true          | Create the PROD project on the same OpenShift cluster. If set false, no PROD project will be created |
 
 How To Run
 ------------
 
 ```
 ansible-galaxy install -r requirements.yml
-ansible-playbook init.yml -e "user_count=50"
-```
-
-If using a separate DEV and PROD OpenShift clusters in the labs:
-```
-ansible-galaxy install -r requirements.yml
-ansible-playbook init.yml -e user_count=50 -e create_prod_project=false
+ansible-playbook init.yml
 ```
 
 Tips

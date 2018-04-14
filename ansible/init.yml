@@ -9,9 +9,6 @@
     user_gogs_user: developer
     user_gogs_password: openshift
     labs_github_ref: master
-    user_count: 10
-    user_format: user%02d
-    create_prod_project: true
     openshift_cli: oc
 
   tasks:
@@ -56,6 +53,7 @@
         clean_deploy: true
       tags: gogs
 
+    # deploy guides
     - import_role:
         name: openshift_workshopper
       vars:
@@ -68,27 +66,7 @@
           OPENSHIFT_DOCS_BASE: "https://docs.openshift.com/container-platform/3.7"
       tags: guides
 
-    # create user dev,stage and cicd projects
-    - name: create cicd,dev and stage projects for {{ user_count }} users
-      shell: |
-        {{ openshift_cli }} new-project dev-{{ item }}   --display-name="CoolStore DEV"
-        {{ openshift_cli }} new-project stage-{{ item }} --display-name="CoolStore STAGE"
-        {{ openshift_cli }} new-project cicd-{{ item }}  --display-name="CI/CD"
-
-        {{ openshift_cli }} policy add-role-to-user admin {{ item }} -n dev-{{ item }}
-        {{ openshift_cli }} policy add-role-to-user admin {{ item }} -n stage-{{ item }}
-        {{ openshift_cli }} policy add-role-to-user admin {{ item }} -n cicd-{{ item }}
-
-        {{ openshift_cli }} adm policy add-role-to-group admin                system:serviceaccounts:cicd-{{ item }}       -n dev-{{ item }}
-        {{ openshift_cli }} adm policy add-role-to-group admin                system:serviceaccounts:cicd-{{ item }}       -n stage-{{ item }}
-        {{ openshift_cli }} adm policy add-role-to-group system:image-puller  system:serviceaccounts:dev-{{ item }}        -n cicd-{{ item }}
-        {{ openshift_cli }} adm policy add-role-to-group system:image-puller  system:serviceaccounts:stage-{{ item }}      -n cicd-{{ item }}
-        {{ openshift_cli }} adm policy add-role-to-user  system:image-builder system:serviceaccount:dev-{{ item }}:builder -n cicd-{{ item }}
-      with_sequence: start=1 end={{ user_count|int }} format="{{ user_format }}"
-      when: user_count|int > 1
-      ignore_errors: true
-      tags: user_projects
-
+    # create projects
     - name: create cicd, dev and stage projects
       shell: |
         {{ openshift_cli }} new-project dev   --display-name="CoolStore DEV"
@@ -100,45 +78,12 @@
         {{ openshift_cli }} adm policy add-role-to-group system:image-puller  system:serviceaccounts:dev         -n cicd
         {{ openshift_cli }} adm policy add-role-to-group system:image-puller  system:serviceaccounts:stage       -n cicd
         {{ openshift_cli }} adm policy add-role-to-user  system:image-builder system:serviceaccount:dev:builder  -n cicd
-      when: user_count|int <= 1
       ignore_errors: true
       tags: user_projects
 
-    # create prod project
-    - name: create prod project for {{ user_count }} users
-      shell: |
-        {{ openshift_cli }} new-project prod-{{ item }} --display-name="CoolStore PROD"
-        {{ openshift_cli }} policy add-role-to-user admin {{ item }} -n prod-{{ item }}
-        {{ openshift_cli }} adm policy add-role-to-group system:image-puller system:serviceaccounts:prod-{{ item }} -n cicd-{{ item }}
-      with_sequence: start=1 end={{ user_count|int }} format="{{ user_format }}"
-      when: 
-        - user_count|int > 1 
-        - create_prod_project|bool
-      ignore_errors: true
-      tags: user_projects
-      
-    - name: create prod project on same cluster
-      shell: |
-        {{ openshift_cli }} new-project prod --display-name="CoolStore PROD"
-        {{ openshift_cli }} adm policy add-role-to-group admin system:serviceaccounts:cicd -n prod
-        {{ openshift_cli }} adm policy add-role-to-group system:image-puller system:serviceaccounts:prod -n cicd
-      when: 
-        - user_count|int <= 1 
-        - create_prod_project|bool
-      ignore_errors: true
-      tags: user_projects
-
-    # create jenkins slave config
-    - name: create jenkins slave configmap for {{ user_count }} users
-      shell: "{{ openshift_cli }} apply -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/jenkins-slave-skopeo.yml -n cicd-{{ item }}"
-      with_sequence: start=1 end={{ user_count|int }} format="{{ user_format }}"
-      when: user_count|int > 1 
-      ignore_errors: true
-      tags: user_projects
-
+    # configure jenkins slave
     - name: create jenkins slave configmap 
       shell: "{{ openshift_cli }} apply -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/jenkins-slave-skopeo.yml -n cicd"
-      when: user_count|int <= 1 
       ignore_errors: true
       tags: user_projects
 
