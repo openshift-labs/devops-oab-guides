@@ -81,83 +81,40 @@ projects that your user has permission to work with.
 
 #### Deployment Environments
 
-Download source code for the CoolStore application from GitHub:
+In order to deploy CoolStore application, you need the Catalog and Web UI components. The Web UI image is 
+built by the front-end team and is already available in the OpenShift container registry. You can 
+check the Web image in the `cicd{{PROJECT_SUFFIX}}` project by going to *Builds* > *Images*.
 
-[source,shell,role=copypaste]
-----
-wget https://github.com/openshift-labs/devops-oab-labs/archive/master.tar.gz
-tar xvfz master.tar.gz
-mv devops-oab-labs-master/* .
-rm -rf devops-oab-labs-master
-----
+The source code for the Catalog service is available in the following git repository: <br/>
+http://{{GIT_HOSTNAME}}/{{GIT_USER}}/catalog-spring-boot.git
 
+You should build a container image for the Catalog as well in order to be able to deploy it. You can 
+store the Catalog image in the `cicd{{PROJECT_SUFFIX}}` project as well (similar to Web UI image) so that 
+they can be re-used across various environments. 
 
-Register an account on the git server: http://{{GIT_HOSTNAME}}
-
-* Username: `{{GIT_USER}}`
-* Email: `{{GIT_USER}}@gogs.com`
-* Password: `{{GIT_PASSWORD}}`
-
-Create a Git repository for the Catalog service: `catalog-spring-boot`
-
-Import the Catalog service source code into the Git repository on Gogs:
-
-[source,shell,role=copypaste]
-----
-cd catalog-spring-boot
-git config --global user.name "rhdeveloper"
-git config --global user.email "rhdeveloper@me.com"
-git init
-git add . --all
-git commit -m "initial add"
-git remote add origin http://{{GIT_USER}}:{{GIT_PASSWORD}}@{{GIT_HOSTNAME}}/{{GIT_USER}}/catalog-spring-boot.git
-git push -u origin master
-----
-
-
-Create a Git repository for the Web UI: `web-nodejs`
-
-Import the Web UI source code into the Git repository on Gogs:
-
-[source,shell,role=copypaste]
-----
-cd ../web-nodejs
-git init
-git add . --all
-git commit -m "initial add"
-git remote add origin http://{{GIT_USER}}:{{GIT_PASSWORD}}@{{GIT_HOSTNAME}}/{{GIT_USER}}/web-nodejs.git
-git push -u origin master
-----
-
-
-The container images built for Catalog and Web UI will be stored in the `cicd{{PROJECT_SUFFIX}}` project and 
-deployed from there across various environments. 
-
-Create the image streams for Catalog and Web UI (note the `-n` flag):
+Create an imagestream for Catalog in order to store the Catalog images (note the `-n` flag):
 
 [source,shell,role=copypaste]
 ----
 oc create -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/catalog-is.yaml -n cicd{{PROJECT_SUFFIX}}
-oc create -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/web-is.yaml -n cicd{{PROJECT_SUFFIX}}
 ----
 
-Deploy the Catalog service into the DEV environment:
+Now you can deploy the Catalog service into the DEV environment using a template:
 
 [source,shell,role=copypaste]
 ----
 oc new-app -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/catalog-template.yaml \
       --param=GIT_URI=http://{{GIT_HOSTNAME}}/{{GIT_USER}}/catalog-spring-boot.git \
-      --param=MAVEN_MIRROR_URL={{NEXUS_URL}} \
-      --param=IMAGE_NAMESPACE=cicd{{PROJECT_SUFFIX}}
+      --param=MAVEN_MIRROR_URL={{NEXUS_URL}} 
 ----
 
-Deploy the Web UI service into the DEV environment:
+Deploy the Web UI as well into the DEV environment:
 
 [source,shell,role=copypaste]
 ----
 oc new-app -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/web-template.yaml \
-      --param=GIT_URI=http://{{GIT_HOSTNAME}}/{{GIT_USER}}/web-nodejs.git \
-      --param=IMAGE_NAMESPACE=cicd{{PROJECT_SUFFIX}} 
+      --param=GIT_URI=http://{{GIT_HOSTNAME}}/{{GIT_USER}}/web-nodejs.git 
 ----
 
-Point your browser to the Web UI route url
+Point your browser to the Web UI route url to verify CoolStore application is deployed successfully into the 
+DEV environment.
