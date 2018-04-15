@@ -225,7 +225,7 @@ pipeline {
           openshift.withCluster() {
             def imageNamespace = openshift.project()
             openshift.withProject(env.STAGE_PROJECT) {
-              def template = 'https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/coolstore-template.yaml'
+              def template = 'https://raw.githubusercontent.com/{{ LABS_GITHUB_ACCOUNT }}/devops-oab-labs/master/openshift/coolstore-template.yaml'
               openshift.apply(
                 openshift.process("-f", template, "-p", "CATALOG_IMAGE_VERSION=${releaseTag}", "-p", "IMAGE_NAMESPACE=${imageNamespace}")
               )

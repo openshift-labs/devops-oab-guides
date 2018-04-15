@@ -166,7 +166,7 @@ pipeline {
         script {
           openshift.withCluster(prodCluster, prodToken) {
             openshift.withProject(prodProject) {
-              def template = 'https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/coolstore-apb-template.yaml'
+              def template = 'https://raw.githubusercontent.com/{{ LABS_GITHUB_ACCOUNT }}/devops-oab-labs/master/openshift/coolstore-apb-template.yaml'
               openshift.apply(
                 openshift.process("-f", template, "-p", "CATALOG_IMAGE_VERSION=${catalogReleaseTag}", "-p", "WEB_IMAGE_VERSION=${webReleaseTag}")
               )
