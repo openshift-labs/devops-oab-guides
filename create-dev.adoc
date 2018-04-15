@@ -99,7 +99,8 @@ Create an imagestream for Catalog in order to store the Catalog images (note the
 oc create -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/catalog-is.yaml -n cicd{{PROJECT_SUFFIX}}
 ----
 
-Now you can deploy the Catalog service into the DEV environment using a template:
+Now you can deploy the Catalog service into the DEV environment using a template that builds the Catalog container 
+image from source code via Source-to-Image capability:
 
 [source,shell,role=copypaste]
 ----
@@ -108,12 +109,12 @@ oc new-app -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/m
       --param=MAVEN_MIRROR_URL={{NEXUS_URL}} 
 ----
 
-Deploy the Web UI as well into the DEV environment:
+Deploy the Web UI as well into the DEV environment using the Web UI container image that is already delivered by the 
+front-end team:
 
 [source,shell,role=copypaste]
 ----
-oc new-app -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/web-template.yaml \
-      --param=GIT_URI=http://{{GIT_HOSTNAME}}/{{GIT_USER}}/web-nodejs.git 
+oc new-app -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/web-template.yaml
 ----
 
 Point your browser to the Web UI route url to verify CoolStore application is deployed successfully into the 

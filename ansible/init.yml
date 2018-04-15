@@ -125,8 +125,8 @@
     # create web imagestream
     - name: import web ui images from docker hub
       shell: |
-        {{ openshift_cli }} import-image web-nodejs --from="docker.io/siamaksade/rhsummit18-devops-web" --all --confirm -n cicd
-        {{ openshift_cli }} tag cicd/web-nodejs:latest cicd/web-nodejs:1.0
+        {{ openshift_cli }} import-image web-ui --from="docker.io/siamaksade/rhsummit18-devops-web" --all --confirm -n cicd
+        {{ openshift_cli }} tag cicd/web-ui:latest cicd/web-ui:1.0
 
     # configure jenkins slave
     - name: create jenkins slave configmap 
