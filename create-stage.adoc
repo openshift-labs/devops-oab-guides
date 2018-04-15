@@ -62,9 +62,8 @@ pipeline {
       steps {
         script {
           openshift.withCluster() {
-            echo "Releasing image version ${releaseTag}"
+            echo "Releasing catalog image version ${releaseTag}"
             openshift.tag("${openshift.project()}/catalog:latest", "${openshift.project()}/catalog:${releaseTag}")
-            openshift.tag("${openshift.project()}/web-ui:latest", "${openshift.project()}/web-ui:${releaseTag}")
           }
         }
       }
@@ -228,7 +227,7 @@ pipeline {
             openshift.withProject(env.STAGE_PROJECT) {
               def template = 'https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/coolstore-template.yaml'
               openshift.apply(
-                openshift.process("-f", template, "-p", "IMAGE_VERSION=${releaseTag}", "-p", "IMAGE_NAMESPACE=${imageNamespace}")
+                openshift.process("-f", template, "-p", "CATALOG_IMAGE_VERSION=${releaseTag}", "-p", "IMAGE_NAMESPACE=${imageNamespace}")
               )
             }
           }
@@ -245,7 +244,7 @@ pipeline {
 The `Tear-down STAGE` and `Deploy STAGE` stages in the pipeline remove the existing deployments in 
 the staging environment and then deploy the new version from scratch in that order. This practices is employed in 
 order to build confidence in the process for building new environments whenever needed without 
-the common reproducibility concerns that often surrounds deployments environment. Need more 
+the common repeatability concerns that often surrounds deployments environment. Need more 
 test and staging environments? They are one click away!
 
 Go to *Builds* > *Pipelines* and start the pipeline again by clicking on the *Start the Pipeline*. 
