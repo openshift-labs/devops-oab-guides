@@ -8,6 +8,7 @@
     user_gogs_admin: gogs
     user_gogs_user: developer
     user_gogs_password: openshift
+    labs_github_account: openshift-labs
     labs_github_ref: master
     openshift_cli: oc
 
@@ -64,7 +65,6 @@
         password: "{{ user_gogs_password }}"
         status_code: 200,201
         force_basic_auth: true
-      when: repo_result.status != 200
       tags: gogs
 
     - name: create temporary git directory
@@ -72,36 +72,27 @@
         state: directory
         prefix: projects-git
       register: git_dir
-      when: repo_result.status != 200
       tags: gogs
 
     - name: unarchive projects source archive
       unarchive:
         remote_src: yes
-        src: "https://github.com/{{ github_account }}/devops-oab-labs/archive/{{ github_ref }}.zip"
+        src: "https://github.com/{{ labs_github_account }}/devops-oab-labs/archive/{{ labs_github_ref }}.zip"
         dest: "{{ git_dir.path }}"
-      when: repo_result.status != 200
       tags: gogs
 
     - name: push catalog to git repository in gogs
       shell: |
         git init
-        git remote add origin http://{{ user_gogs_user }}:{{ user_gogs_password }}@{{ gogs_hostname }}/{{ user_gogs_user }}/catalog.git
+        git remote add origin http://{{ user_gogs_user }}:{{ user_gogs_password }}@{{ gogs_hostname }}/{{ user_gogs_user }}/catalog-spring-boot.git
         git add . --all
         git config user.email "rhdeveloper@redhat.com"
         git config user.name "rh-developer"
         git commit -m "Initial add"
         git push origin master
       args:
-        chdir: "{{ git_dir.path }}/devops-oab-labs-{{ github_ref }}/catalog-spring-boot"
-      when: repo_result.status != 200
+        chdir: "{{ git_dir.path }}/devops-oab-labs-{{ labs_github_ref }}/catalog-spring-boot"
       tags: gogs
-
-    # create web imagestream
-    - name: create web imagestream in 
-      shell: |
-        {{ openshift_cli }} import-image web-nodejs --from='docker.io/siamaksade/rhsummit18-devops-web -n cicd
-        {{ openshift_cli }} cicd/web-nodejs:latest cicd/web-nodejs:1.0
 
     # deploy guides
     - import_role:
@@ -131,11 +122,23 @@
       ignore_errors: true
       tags: user_projects
 
+    # create web imagestream
+    - name: import web ui images from docker hub
+      shell: |
+        {{ openshift_cli }} import-image web-nodejs --from="docker.io/siamaksade/rhsummit18-devops-web" --all --confirm -n cicd
+        {{ openshift_cli }} tag cicd/web-nodejs:latest cicd/web-nodejs:1.0
+
     # configure jenkins slave
     - name: create jenkins slave configmap 
       shell: "{{ openshift_cli }} apply -f https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/jenkins-slave-skopeo.yml -n cicd"
       ignore_errors: true
       tags: user_projects
+
+    # populate nexus
+    - name: populate nexus
+      shell: "{{ openshift_cli }} new-build redhat-openjdk18-openshift:1.2~http://{{ gogs_hostname }}/{{ user_gogs_user }}/catalog-spring-boot.git -n {{ lab_infra_project }} -e MAVEN_MIRROR_URL=http://nexus.{{ lab_infra_project }}.svc:8081/repository/maven-all-public/"
+      ignore_errors: true
+      tags: populate-nexus
 
     # validate cluster
     - name: check openjdk image stream installed
@@ -151,4 +154,5 @@
           - 'OpenJDK image stream is not installed. Run the following as cluster admin:'
           - '{{ openshift_cli }} create -n openshift -f https://raw.githubusercontent.com/openshift/openshift-ansible/release-3.9/roles/openshift_examples/files/examples/v3.9/xpaas-streams/jboss-image-streams.json'
       when: jdk_imagestream_result|failed   
-      tags: validate     
+      tags: validate
+
