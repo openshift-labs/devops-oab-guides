@@ -19,6 +19,7 @@ Playbook Variables
 |`user_gogs_test`       | `test`        | Test username to create in Gogs |
 |`user_gogs_password`   | `openshift`   | Gogs password to configure for admin and test users |
 |`labs_github_ref`      | `master`      | GitHub branch to user for lab code https://github.com/openshift-labs/devops-oab-labs.git |
+|`clean_init`           | `false`       | Clean the environment and remove projects before init |
 
 How To Run
 ------------

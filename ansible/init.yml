@@ -11,10 +11,23 @@
     labs_github_account: openshift-labs
     labs_github_ref: master
     openshift_cli: oc
+    clean_init: false
 
   tasks:
     - include_role:
         name: openshift_common_facts
+      tags: always
+
+    - name: clean up lab environment
+      shell: "{{ openshift_cli }} delete project {{ lab_infra_project }} dev stage cicd"
+      when: clean_init|bool
+      ignore_errors: true
+      tags: always
+
+    - name: wait for clean up
+      pause:
+        seconds: 20
+      when: clean_init|bool
       tags: always
 
     - name: create lab infra project
