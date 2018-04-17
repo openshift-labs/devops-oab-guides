@@ -29,6 +29,12 @@ ansible-galaxy install -r requirements.yml
 ansible-playbook init.yml
 ```
 
+Troubleshooting
+------------
+
+* Ansible on Mac OS X needs the GNU tar instead of BSD tar. Install it via `brew install gnu-tar`
+
+
 Tips
 ----------------
 * Pre-pull images on all nodes
