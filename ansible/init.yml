@@ -26,7 +26,7 @@
 
     - name: wait for clean up
       pause:
-        seconds: 20
+        seconds: 60
       when: clean_init|bool
       tags: always
 
@@ -90,7 +90,7 @@
     - name: unarchive projects source archive
       unarchive:
         remote_src: yes
-        src: "https://github.com/{{ labs_github_account }}/devops-oab-labs/archive/{{ labs_github_ref }}.zip"
+        src: "https://github.com/{{ labs_github_account }}/devops-oab-labs/archive/{{ labs_github_ref }}.tar.gz"
         dest: "{{ git_dir.path }}"
       tags: gogs
 
