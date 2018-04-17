@@ -107,6 +107,18 @@
         chdir: "{{ git_dir.path }}/devops-oab-labs-{{ labs_github_ref }}/catalog-spring-boot"
       tags: gogs
 
+    - name: create cd-infra git repository
+      uri:
+        url: http://{{ gogs_hostname }}/api/v1/user/repos
+        method: POST
+        body: '{"name": "cd-infra", "private": false}'
+        body_format: json
+        user: "{{ user_gogs_user }}"
+        password: "{{ user_gogs_password }}"
+        status_code: 200,201
+        force_basic_auth: true
+      tags: gogs
+
     # deploy guides
     - import_role:
         name: openshift_workshopper
@@ -149,7 +161,7 @@
 
     # populate nexus
     - name: populate nexus
-      shell: "{{ openshift_cli }} new-build redhat-openjdk18-openshift:1.2~http://{{ gogs_hostname }}/{{ user_gogs_user }}/catalog-spring-boot.git -n {{ lab_infra_project }} -e MAVEN_MIRROR_URL=http://nexus.{{ lab_infra_project }}.svc:8081/repository/maven-all-public/"
+      shell: "{{ openshift_cli }} new-build redhat-openjdk18-openshift:1.2~http://{{ gogs_hostname }}/{{ user_gogs_user }}/catalog-spring-boot.git -n {{ lab_infra_project }} -e MAVEN_MIRROR_URL=http://nexus.{{ lab_infra_project }}.svc:8081"
       ignore_errors: true
       tags: populate-nexus
 

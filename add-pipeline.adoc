@@ -1,30 +1,99 @@
 ## Automate Build and Deployment with Pipelines
 
-Disable the automatic deployment triggers so that the Jenkins pipeline can control when deployment 
-should take place:
+In this lab you will learn about pipelines and how to configure a pipeline in OpenShift so
+that it will take care of the application lifecycle.
 
-[source,shell,role=copypaste]
+### Background
+
+A continuous delivery (CD) pipeline is an automated expression of your process for getting software
+from version control right through to your users and customers.
+Every change to your software (committed in source control) goes through a complex process on
+its way to being released. This process involves building the software in a reliable and repeatable
+manner, as well as progressing the built software (called a "build") through multiple stages of
+testing and deployment.
+
+Pipeline provides an extensible set of tools for modeling simple-to-complex delivery pipelines
+"as code" via the link:https://jenkins.io/doc/book/pipeline/syntax[Pipeline domain-specific language (DSL)]
+syntax. OpenShift provides also an link:https://github.com/openshift/jenkins-client-plugin[OpenShift Jenkins Pipeline DSL]
+for interacting with the platform from within a Jenkins pipeline in a fluent manner.
+
+The definition of a Jenkins Pipeline is written into a text file (called a Jenkinsfile) which
+in turn can be committed to a project’s source control repository. This is the foundation of
+"Pipeline-as-code"; treating the CD pipeline a part of the application to be versioned
+and reviewed like any other code.
+
+image::devops-pipeline-flow.png[Pipelines]
+
+### Set up your pipeline
+
+As we want the Jenkins pipeline to control when builds and deployments happen, we need to disable the ability
+on the current Deployment to automatically trigger when there is a new image or a configuration change.
+
+#### Configure manual deployments on Dev application
+
+In the *CoolStore DEV* project, click on *Applications -> Deployments* on the left sidebar menu
+and then on *catalog* deployment. Click on *Actions -> Edit* button:
+
+image::devops-pipeline-deployment-edit.png[Edit pipeline]
+
+Unselect the checkboxes for the Image Change trigger and for the Config change trigger.
+
+image::devops-pipeline-deployment-triggers.png[Remove triggers]
+
+#### Create your pipeline
+
+As pipelines provides the ability to promote applications between different stages of the delivery cycle, Jenkins, which is our Continuous Integration server that will execute our pipelines, will be deployed on a project with a Continuous Integration role. Pipelines executed in this project will have permissions to interact with all the projects modeling the different stages of our delivery cycle. 
+
+Let's switch to `cicd{{PROJECT_SUFFIX}}`. Select that project from the projects dropdown menu:
+
+image::devops-pipeline-projects-menu.png[Switch project]
+
+The first thing you will notice is that it is an empty project. We're going to deploy a Jenkins instance to this project to configure and run our pipelines. As we want our Jenkins instance to be able to survive restarts (in case we need to update any plugin configuration) we will select the Jenkins peristent template from the Service Catalog.
+
+Use the *Search Catalog* search field on the menu bar and search for *Jenkins*. Select the one named *Jenkins*.
+
+image::devops-pipeline-catalog-search.png[Empty CICD project]
+
+We will be pronted with the configuration screens for deploying our Jenkins server instance.
+
+image::devops-jenkins-template.png[Jenkins template]
+
+Review the configuration if you like and click *next* leaving all the default parameters, as these are ok for this lab.
+
+image::devops-jenkins-template-config.png[Jenkins template config]
+
+A binding are the credentials and connection info to the service we are about to deploy. These are useful when you want to provide that information to a consumer application. As an example, if you deploy a database you will want to provide the credentials and connection information for that database to your application. 
+
+In the case of Jenkins we can move ahead without creating a binding. Select *Do not bind at this time* and click *Create*.
+
+image::devops-jenkins-template-binding.png[Jenkins template binding]
+
+Jenkins will now be provisioned on the background. Return back to the `cicd{{PROJECT_SUFFIX}}` project by clicking *Continue to the project overview* link.
+
+image::devops-jenkins-template-create.png[Jenkins template binding]
+
+We will see now Jenkins being provisioned on our project. Once provisioning is finished, we should see a similar screen to this:
+
+image::devops-jenkins-deployed.png[Jenkins deployed]
+
+We could have done the same as we just did by using one single command on the OpenShift CLI. This command will deploy the service Jenkins with a persistent configuration in our `cicd{{PROJECT_SUFFIX}}` project. 
+
+[source,shell]
 ----
-oc set triggers dc/catalog --manual -n dev{{PROJECT_SUFFIX}}
+oc new-app jenkins-persistent -n cicd{{PROJECT_SUFFIX}}
 ----
 
-Switch the default project to `cicd{{PROJECT_SUFFIX}}` for convenience:
+WARNING: If you have succesfully deployed Jenkins, do NOT execute this command.
 
-[source,shell,role=copypaste]
-----
-oc project cicd{{PROJECT_SUFFIX}}
-----
+#### Store your pipeline definition in Git
 
-Deploy a Jenkins container:
+In order to honor *infrastructure as code* we're going to store all the pipeline definitions and OpenShift resources definitions we will use in a *git* server.
 
-[source,shell,role=copypaste]
-----
-oc new-app jenkins-persistent
-----
+When you log into Gogs you will notice there is an empty repository already created for you to store the pipeline definitions. This project is called `cd-infra`.
 
-Create a Git repository in Gogs to store the pipeline definitions in order to honor infrastructure-as-code: `cd-infra`
+image::devops-pipeline-gogs-cdinfra.png[Gogs project list]
 
-Clone the `cd-infra` repo into your workspace:
+Now, clone the `cd-infra` git repository into your workspace as we will add the neccesary pipelines:
 
 [source,shell,role=copypaste]
 ----
@@ -38,7 +107,7 @@ Change to the `cd-infra` repository working copy:
 cd cd-infra
 ----
 
-Create a Jenkinsfile to build and deploy Catalog into the DEV environment:
+We are going to create a Jenkinsfile to build and deploy our Catalog application into the DEV environment.
 
 [source,shell,role=copypaste]
 ----
@@ -50,7 +119,7 @@ pipeline {
   stages {
     stage('Build JAR') {
       steps {
-        git url: 'http://{{GIT_HOSTNAME}}/{{GIT_USER}}/catalog-spring-boot.git'
+        git url: 'http://GOGS-HOSTNAME/developer/catalog-spring-boot.git'
         sh "cp .settings.xml ~/.m2/settings.xml"
         sh "mvn package"
       }
@@ -93,9 +162,21 @@ pipeline {
 }
 EOF
 ----
+A *Pipeline* is a user-defined model of a CD pipeline. A Pipeline’s code defines your entire build process, which typically includes stages for building an application, testing it and then delivering it.
+
+A *stage* block defines a conceptually distinct subset of tasks performed through the entire Pipeline (e.g. "Build", "Test" and "Deploy" stages), which is used by many plugins to visualize or present Jenkins Pipeline status/progress.
+
+*Step* is a single task. Fundamentally, a step tells Jenkins what to do at a particular point in time (or "step" in the process).
+
+This pipeline has 4 stages defined:
+
+- *Build JAR*: will clone our source repository for Catalog and will use maven's package goal to create a .jar file.
+- *Archive JAR*: will upload our .jar file to nexus repository, to have it under control.
+- *Build Image*: will build an image using a binary file as input in OpenShift. The build will use the .jar file that was created.
+- *Deploy*: it will deploy the created image on OpenShift using the DeploymentConfig named `catalog` we created in the previous lab.
 
 
-Add the Jenkinsfile to the `cd-infra` git repository:
+Now, let's add the Jenkinsfile to the `cd-infra` git repository:
 
 [source,shell,role=copypaste]
 ----
@@ -104,12 +185,20 @@ git commit -m "build pipeline added"
 git push origin master
 ----
 
+You should now see your file in Gogs.
 
-Create the OpenShift pipeline definition to use the Jenkins file
+image::devops-pipeline-gogs-cdinfra-files.png[cd-infra project in Gogs]
+
+
+#### Create your Pipeline definition on OpenShift
+
+Create the OpenShift pipeline definition to use the Jenkins file. This is a regular OpenShift BuildConfig with a *JenkinsPipeline* strategy.
+
+First, let's create the Pipeline's BuildConfig definition:
 
 [source,shell,role=copypaste]
 ----
-cat <<'EOF' > ~/pipeline-catalog-build.yml
+cat <<'EOF' > /tmp/pipeline-catalog-build.yml
 apiVersion: build.openshift.io/v1
 kind: BuildConfig
 metadata:
@@ -119,15 +208,15 @@ spec:
   source:
     git:
       ref: master
-      uri: "{{GIT_HOSTNAME}}/{{GIT_USER}}/cd-infra.git"
+      uri: "GOGS-HOSTNAME/developer/cd-infra.git"
     type: Git
   strategy:
     jenkinsPipelineStrategy:
       env:
         - name: NEXUS_URL
-          value: "{{NEXUS_URL}}"
+          value: "http://nexus.lab-infra.svc:8081"
         - name: DEV_PROJECT
-          value: "dev{{PROJECT_SUFFIX}}"
+          value: "dev"
       jenkinsfilePath: Jenkinsfile.catalog-build
     type: JenkinsPipeline
   triggers:
@@ -141,9 +230,25 @@ spec:
 EOF
 ----
 
-Create an OpenShift pipeline:
+NOTE: At this moment you can not create the pipeline definition using the OpenShift UI
+
+And now let's add this Pipeline to OpenShift:
 
 [source,shell,role=copypaste]
 ----
-oc create -f ~/pipeline-catalog-build.yml
+oc create -f /tmp/pipeline-catalog-build.yml -n cicd{{PROJECT_SUFFIX}}
 ----
+
+You should inmediatly see the pipeline in the OpenShift web console.
+
+image::devops-pipeline-started.png[Pipeline created and started]
+
+The pipeline will start automatically. And it will execute all the stages defined in it. It will take some time to finish.
+
+image::devops-pipeline-finished.png[Pipeline finished]
+
+Once the pipeline has finished, you should see the Catalog application on your `dev{{PROJECT_SUFFIX}}` project. 
+
+You should notice that the number of the deployment (the number to the side of the deployment name) is no longer `#1`. 
+
+image::devops-pipeline-catalog-deployed.png[Catalog application deployed]

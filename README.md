@@ -21,9 +21,9 @@ The lab application used in this workshop is available at https://github.com/ope
 $ git clone https://github.com/openshift-labs/devops-oab-guides.git
 $ cd devops-oab-guides
 
-$ docker run -p 8080:8080 -v $(pwd):/app-data \
+$ docker run -it --rm -p 8080:8080 -v $(pwd):/app-data \
               -e CONTENT_URL_PREFIX="file:///app-data" \
-              -e WORKSHOPS_URLS="file:///app-data/_devops-workshop.yml" \
+              -e WORKSHOPS_URLS="file:///app-data/_summit-devops-lab.yml" \
               osevg/workshopper:latest 
 ```
 
@@ -36,8 +36,8 @@ $ oc new-app -f openshift/guides-template.yml --param=OPENSHIFT_MASTER=$(oc whoa
 You need [Ansible](http://docs.ansible.com/ansible/latest/intro_installation.html) to use the provided playbook for deploying the required services (Gogs, Nexus, etc) for running these labs:
 
 ```
-$ git clone https://github.com/openshift-labs/devops-oab-labs
-$ cd devops-oab-labs/ansible
+$ git clone https://github.com/openshift-labs/devops-oab-guides
+$ cd devops-oab-guides/ansible
 $ ansible-galaxy install -r requirements.yml
 $ ansible-playbook init.yml
 ```
