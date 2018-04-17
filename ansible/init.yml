@@ -26,7 +26,7 @@
 
     - name: wait for clean up
       pause:
-        seconds: 20
+        seconds: 60
       when: clean_init|bool
       tags: always
 
