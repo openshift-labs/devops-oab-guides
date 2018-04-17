@@ -5,17 +5,17 @@ content:
   url: https://raw.githubusercontent.com/openshift-labs/devops-oab-guides/master
 
 vars:
-  OPENSHIFT_URL: "OPENSHIFT-MASTER"
+  OPENSHIFT_URL: "https://masterdev-GUID.generic.opentlc.com:8443"
   OPENSHIFT_USER: "developer"
   OPENSHIFT_PASSWORD: "openshift"
-  PROD_URL: "PROD-OPENSHIFT-MASTER"
+  PROD_URL: "https://masterprod-GUID.generic.opentlc.com:8443"
   PROD_USER: "developer"
   PROD_PASSWORD: "openshift"
-  PROD_REGISTRY: "PROD-REGISTRY"
+  PROD_REGISTRY: "docker-registry-default.apps-GUID.generic.opentlc.com"
   OPENSHIFT_DOCS_BASE: "https://docs.openshift.com/container-platform/3.9"
   NEXUS_URL: "http://nexus.lab-infra.svc:8081/repository/maven-all-public/"
-  NEXUS_EXTERNAL_URL: "http://NEXUS-URL/repository/maven-all-public/"
-  GIT_HOSTNAME: "GOGS-HOSTNAME"
+  NEXUS_EXTERNAL_URL: "http://nexus-lab-infra.devapps-GUID.generic.opentlc.com/repository/maven-all-public/"
+  GIT_HOSTNAME: "gogs-lab-infra.devapps-GUID.generic.opentlc.com"
   GIT_SERVER_INTERNAL_URL: "http://gogs.lab-infra.svc:3000"
   GIT_USER: "developer"
   GIT_PASSWORD: "openshift"
