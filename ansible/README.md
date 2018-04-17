@@ -43,6 +43,7 @@ Tips
   docker pull sonatype/nexus3:3.7.1
   docker pull openshiftdemos/gogs:0.11.34
   docker pull osevg/workshopper:latest
+  docker pull siamaksade/rhsummit18-devops-web
   ```
 
 * Add an admin user to the cluster. Run the following as `system:admin`:
