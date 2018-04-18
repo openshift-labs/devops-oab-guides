@@ -24,11 +24,37 @@
       ignore_errors: true
       tags: always
 
-    - name: wait for clean up
-      pause:
-        seconds: 60
-      when: clean_init|bool
-      tags: always
+    - name: wait for {{ lab_infra_project }} project to get removed
+      shell: "{{ openshift_cli }} get project {{ lab_infra_project }}"
+      ignore_errors: true
+      register: result
+      until: result|failed
+      retries: 30
+      delay: 30
+
+    - name: wait for dev project to get removed
+      shell: "{{ openshift_cli }} get project dev"
+      ignore_errors: true
+      register: result
+      until: result|failed
+      retries: 30
+      delay: 30
+
+    - name: wait for stage project to get removed
+      shell: "{{ openshift_cli }} get project stage"
+      ignore_errors: true
+      register: result
+      until: result|failed
+      retries: 30
+      delay: 30
+
+    - name: wait for cicd project to get removed
+      shell: "{{ openshift_cli }} get project cicd"
+      ignore_errors: true
+      register: result
+      until: result|failed
+      retries: 30
+      delay: 30
 
     - name: create lab infra project
       shell: "{{ openshift_cli }} new-project {{ lab_infra_project }} --display-name='Lab Infra'"
