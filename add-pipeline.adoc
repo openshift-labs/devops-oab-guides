@@ -119,7 +119,7 @@ pipeline {
   stages {
     stage('Build JAR') {
       steps {
-        git url: 'http://GOGS-HOSTNAME/developer/catalog-spring-boot.git'
+        git url: 'http://{{GIT_HOSTNAME}}/developer/catalog-spring-boot.git'
         sh "cp .settings.xml ~/.m2/settings.xml"
         sh "mvn package"
       }
@@ -208,7 +208,7 @@ spec:
   source:
     git:
       ref: master
-      uri: "GOGS-HOSTNAME/developer/cd-infra.git"
+      uri: "http://{{GIT_HOSTNAME}}/developer/cd-infra.git"
     type: Git
   strategy:
     jenkinsPipelineStrategy:
