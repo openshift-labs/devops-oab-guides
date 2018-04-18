@@ -67,7 +67,7 @@ pipeline {
           }
         }
       }
-    }    
+    }
   }
 }
 EOF
@@ -112,6 +112,13 @@ transmit over the network for that matter. The Jenkins instance on OpenShift use
 create Jenkins Credentials based on the secrets defined by the user which are then used in the pipeline for various 
 purposes such as create releases in the git repository. 
 
+Make sure you're still on the `cicd{{PROJECT_SUFFIX}}` project.
+
+[source,shell,role=copypaste]
+----
+oc project cicd{{PROJECT_SUFFIX}}
+----
+
 Create a secret to hold your git credentials:
 
 [source,shell,role=copypaste]
@@ -129,7 +136,7 @@ credentials within a Jenkins.
 
 
 You can now create an OpenShift pipeline that refers to the `Jenkinsfile.release` that you have stored in the git 
-repository. In the *CoolStore DEV* project, click on *Add to Project* > *Import YAML/JSON* and paste the following 
+repository. In the *cicd{{PROJECT_SUFFIX}}* project, click on *Add to Project* > *Import YAML/JSON* and paste the following 
 into the field:
 
 [source,shell,role=copypaste]
@@ -143,7 +150,7 @@ spec:
   source:
     git:
       ref: master
-      uri: "{{GIT_HOSTNAME}}/{{GIT_USER}}/cd-infra.git"
+      uri: "http://{{GIT_HOSTNAME}}/{{GIT_USER}}/cd-infra.git"
     type: Git
   strategy:
     jenkinsPipelineStrategy:
@@ -164,6 +171,8 @@ spec:
     - type: ConfigChange
 ----
 
+image::devops-stage-paste-yaml.png[Paste Pipeline yaml]
+
 Click on *Create* to create the pipeline. Notice the `git.uri` and `jenkinsfilePath` fields in the above 
 YAML which specify the git repository where the Jenkinsfile is stored and the exact name of the Jenkinsfile.
 
@@ -175,9 +184,15 @@ review the git release that is created:
 
 Git server web: http://{{GIT_HOSTNAME}}/{{GIT_USER}}/catalog-spring-boot/releases[http://{{GIT_HOSTNAME}}/{{GIT_USER}}/catalog-spring-boot]
 
+image::devops-stage-gogs-release.png[Gogs release]
+
+
 Point your browser to the Nexus Maven Repository to review the binary release of the Catalog service in form 
 of a jar file:
-Nexus Maven Repository: http://{{NEXUS_EXTERNAL_URL}}[http://{{NEXUS_EXTERNAL_URL}}]
+
+Nexus Maven Repository: http://{{NEXUS_EXTERNAL_URL}}/#browse/browse:maven-all-public:com%2Fredhat%2Fcloudnative%2Fcatalog[http://{{NEXUS_EXTERNAL_URL}}/#browse/browse:maven-all-public:com%2Fredhat%2Fcloudnative%2Fcatalog]
+
+image::devops-stage-nexus.png[Nexus released artifact]
 
 
 ### Deploy Releases into Staging Environment
@@ -195,8 +210,8 @@ binary release catalog and deploy the container image in the staging environment
 If you are comfortable with `vi` text editor, we envy you. Use that and good luck! (don't 
 forget to run `git commit` and `git push`)
 
-If not, use the git server web for editing the `Jenkinsfile.release`:<br/>
-http://{{GIT_HOSTNAME}}/{{GIT_USER}}/cd-infra/Jenkinsfile.release
+If not, use the git server web for editing the `Jenkinsfile.release`:
+http://{{GIT_HOSTNAME}}/{{GIT_USER}}/cd-infra/src/master/Jenkinsfile.release
 
 Click on the pencil icon to edit `Jenkinsfile.release` and add the following `stages` at the 
 end of the release pipeline and click on *Commit* button.
@@ -249,8 +264,13 @@ test and staging environments? They are one click away!
 
 Go to *Builds* > *Pipelines* and start the pipeline again by clicking on the *Start the Pipeline*. 
 
+
+image::devops-stage-released.png[Stage released]
+
 As the pipeline execution progresses, you will see the latest release gets deployed in the *CoolStore STAGE* 
 environment. 
+
+image::devops-stage-project-overview.png[Stage project overview]
 
 Point your browser to the Web route url in order to verify the CoolStore app is working as expected in 
 the staging environment.
