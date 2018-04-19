@@ -1,103 +1,125 @@
 ## Create APB
 
 ```
-User Flow:
+# Commands Cheat Sheet
+$ apb init mysql-digital-ocean-apb --bindable
+$ cd mysql-digital-ocean-apb
 
-- apb init mysql-digital-ocean-apb --bindable
+# take a look at current apb.yml
 
-- cd mysql-digital-ocean-apb
+$ cat <<'EOF' > apb.yml
+_params: &_params
+  - name: service_name
+    title: Database service name
+    description: The name of the service. Used to name droplet and Openshit service
+    type: string
+    default: domysql
+    pattern: "^[a-zA-Z0-9]+[a-zA-Z0-9]*[a-zA-Z0-9]+$"
+    required: true
+  - name: region
+    title: Target region
+    description: Region where VM will be provisioned
+    type: enum
+    enum: [nyc1,nyc2,nyc3,sfo1,sfo2,ams2,ams3,sgp1,lon1,fra1,tor1,blr1]
+    default: sfo1
+    reguired: true
+    display_type: select
+  - name: mysql_database
+    title: Database name
+    description: The name of the MySQL database
+    type: string
+    default: catalog
+    pattern: "^[a-zA-Z0-9_]*[a-zA-Z_]+[a-zA-Z0-9_]*$"
+    required: true
+  - name: mysql_user
+    title: Database username 
+    description: Username that will be used to connect to MySQL
+    type: string
+    default: admin
+    pattern: "^[a-zA-Z0-9_]*[a-zA-Z_]+[a-zA-Z0-9_]*$"
+    required: true
+  - name: mysql_password
+    title: Database user password
+    description: Password to connect to MySQL (generated if blank)
+    type: string
+    required: true
+    display_type: password
+version: 1.0
+name: mysql-digital-ocean-apb
+description: MySQL database from Digital Ocean
+bindable: true
+async: optional
+tags:
+- database
+- mysql
+metadata:
+  displayName: "Digital Ocean MySQL (APB)"
+  longDescription: "MySQL 5.7 running on CentOs 7.4 in Digital Ocean"
+  console.openshift.io/iconClass: icon-mysql-database
+  providerDisplayName: "Red Hat, Inc."
+plans:
+  - name: 512mb
+    description: Small droplet with MySQL
+    free: true
+    metadata:
+      displayName: Default (512MB)
+      longDescription: This plan provides small (512MB) droplet from Digital Ocean with MySQL
+      cost: $0.00
+    parameters: *_params
+  - name: 2gb
+    description: Small droplet with MySQL
+    free: true
+    metadata:
+      displayName: Medium (2GB)
+      longDescription: This plan provides medium (2GB) droplet from Digital Ocean with MySQL
+      cost: $10.00 monthly
+    parameters: *_params
+  - name: 4gb
+    description: Small droplet with MySQL
+    free: true
+    metadata:
+      displayName: Large (4GB)
+      longDescription: This plan provides large (4GB) droplet from Digital Ocean with MySQL
+      cost: $40.00 monthly
+    parameters: *_params
+EOF
 
-- take a look at apb.yml
 
-- edit apb.yml and paste these content:
-  https://github.com/tahonen/mysql-digital-ocean-apb/blob/master/apb.yml
-  
-- take a look at playbooks. explain action playbooks
+# take a look at playbooks/
 
-- copy `roles` and `playbooks` from https://github.com/tahonen/mysql-digital-ocean-apb to mysql-digital-ocean-apb
+# the \ is to disable the alias which is usually 'cp -i' and asks for each overwrite
+$ \cp -rf /opt/labs/mysql-digital-ocean-apb/{playbooks,roles} .
 
-- expalin the apb publishing process and the Dockerfile
+$ cat <<'EOF' > Dockerfile
+FROM openshift3/apb-base
 
-- Paste the Dockerfile content (from https://github.com/tahonen/mysql-digital-ocean-apb without the LABEL) to mysql-digital-ocean-apb/Dockerfile
-
-----
-FROM ansibleplaybookbundle/apb-base  
-LABEL "com.redhat.apb.spec"=  
-RUN yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-$(rpm -E '%{rhel}').noarch.rpm && yum -y update && yum -y install python git python-pip && yum clean all 
-RUN pip install --upgrade pip && pip install 'dopy>=0.3.7,<=0.3.7'  
-RUN chown -R apb:0 /opt/apb && chmod -R g=u /opt/apb /etc/passwd  
-COPY playbooks /opt/apb/actions 
-COPY roles /opt/apb/actions/roles 
-RUN chmod -R g=u /opt/{ansible,apb} 
-USER apb 
+RUN yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-$(rpm -E '%{rhel}').noarch.rpm && yum -y update && yum -y install python git python-pip && yum clean all
+RUN pip install --upgrade pip && pip install 'dopy>=0.3.7,<=0.3.7'
+RUN chown -R apb:0 /opt/apb && chmod -R g=u /opt/apb /etc/passwd
+COPY playbooks /opt/apb/actions
+COPY roles /opt/apb/actions/roles
+RUN chmod -R g=u /opt/{ansible,apb}
+USER apb
 ENV ANSIBLE_HOST_KEY_CHECKING false
-----
+EOF
 
-- apb prepare
+$ apb prepare
 
-- take a log at Dockerfile again...LABEL added
+# review Dockerfile and note LABEL
 
-- apb build --dockerfile Dockerfile.final
+$ apb build
 
-- oc login -u admin
+$ oc login -u admin -p openshift
+$ apb push --registry-route {{ PROD_REGISTRY }}
 
-- apb push --registry-route docker-registry-default.app-GUID.generic.opentlc.com
-  # apb push --registry-route $(oc get routes docker-registry -n default --no-headers | awk '{print $2}')
+$ oc login -u developer
 
-- deploy via web console
-
-
-
-
-https://github.com/VeerMuchandi/Using-OpenShift-APB
-
-Shell script for apb tool as a docker image: https://raw.githubusercontent.com/ansibleplaybookbundle/ansible-playbook-bundle/master/scripts/apb-docker-run.sh
-
-
-
-
-
-
-
-
-
-
-Dev Cluster Setup:
-    
-TODO:
- - configure service broker
- - recreate registry route on dev cluster
- - copy /etc/origin/master/ca.crt from DEV master to /etc/docker/certs.d/docker-registry-default.app-GUID.generic.opentlc.com workstation
-
-Defautl broker config: https://hastebin.com/uboquwinih.scala
-
-Snippet from Ansible Service Broker config oc get configmap broker-config -n openshift-ansible-service-broker
-
-Name has to end -apb since ansible service broker is using that string as whitelist filtering
-
-openshift: 
-  ...  
-  namespace: openshift-ansible-service-broker
-  ...
-secrets:
-- {apb_name: localregistry-mysql-digital-ocean-apb, secret: digital-ocean-api-key, title: digital-ocean-apikey}
-
-create secret for Digital Ocean APi key
-
-oc create secret generic digital-ocean-api-key --from-literal=api_key=YOUR_KEY_COMES_HERE -n openshift-ansible-service-broker
-
-- oc rollout latest apb -n openshift-ansible-service-broker
-
-
-Notes:
-    
-This is a secure registry. So you would get a certificate to connect to this registry as well. In a typical experimental cluster you may have used the default certificates that openshift configures for you. The ca.crt can be copied from /etc/origin/master/ca.crt to the host where you want to login from
-
-Copy the certificate to the /etc/docker/certs.d/docker-registry-default.app-GUID.generic.opentlc.com
-
-ls /etc/docker/certs.d/docker-registry-default.app-GUID.generic.opentlc.com/ca.crt
+# Go to stage project and provision
 
 ```
+
+NOTE: registry certs need to be on the workstation, copied from /etc/origin/master/ca.crt to /etc/docker/certs.d/{{ PROD_REGISTRY }}
+
 TODO:
 
 * Create MySQL APB on Digital Ocean
