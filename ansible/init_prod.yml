@@ -1,0 +1,12 @@
+---
+- name: Deploy Infra Components for DevOps with OpenShift and OpenShift Ansible Broker Workshop
+  hosts: localhost
+  gather_facts: false
+  run_once: true
+  vars:
+    openshift_cli: oc
+    digitalocean_api_key: 
+  tasks:
+    - include_role:
+        name: openshift_common_facts
+      tags: always

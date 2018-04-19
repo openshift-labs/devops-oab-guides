@@ -12,7 +12,7 @@
     labs_github_ref: master
     openshift_cli: oc
     clean_init: false
-
+    digitalocean_api_key: 
   tasks:
     - include_role:
         name: openshift_common_facts
