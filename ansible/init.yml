@@ -12,12 +12,40 @@
     labs_github_ref: master
     openshift_cli: oc
     clean_init: false
+    configure_broker: true
     digitalocean_api_key: 
   tasks:
     - include_role:
         name: openshift_common_facts
       tags: always
 
+    - name: check to be logged in as cluster admin
+      shell: "{{ openshift_cli }} get project default"
+      when: configure_broker|bool
+      changed_when: false
+
+    # configure ansible broker
+    - name: create digital ocean secret
+      shell: |
+        {{ openshift_cli }} delete secret digital-ocean-api-key -n openshift-ansible-service-broker
+        {{ openshift_cli }} create secret generic digital-ocean-api-key --from-literal=api_key={{ digitalocean_api_key }} -n openshift-ansible-service-broker
+      ignore_errors: true
+      when: configure_broker|bool
+      tags: broker
+
+    - name: update ansible broker config
+      shell: |
+        {{ openshift_cli }} delete configmap broker-config -n openshift-ansible-service-broker
+        {{ openshift_cli }} create configmap broker-config --from-file=broker-config=files/broker-config-dev.yml -n openshift-ansible-service-broker
+      when: configure_broker|bool
+      tags: broker
+
+    - name: restart ansible broker
+      shell: "{{ openshift_cli }} rollout latest dc/asb -n openshift-ansible-service-broker" 
+      when: configure_broker|bool
+      tags: broker
+
+    # create lab-infra project
     - name: clean up lab environment
       shell: "{{ openshift_cli }} delete project {{ lab_infra_project }} dev stage cicd"
       when: clean_init|bool

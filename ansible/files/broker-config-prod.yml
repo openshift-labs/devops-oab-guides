@@ -1,0 +1,56 @@
+registry:
+  - type: rhcc
+    name: rh
+    url:  https://registry.access.redhat.com
+    org:  
+    tag:  v3.9.14
+    white_list: [.*-apb$]
+
+    auth_type: ""
+    auth_name: ""
+  - name: dh
+    type: dockerhub
+    org: siamaksade
+    white_list:
+    - "rhsummit18-.*-apb$"
+  - type: local_openshift
+    name: localregistry
+    namespaces: ['openshift']
+    white_list: [.*-apb$]
+
+dao:
+  etcd_host: asb-etcd.openshift-ansible-service-broker.svc
+  etcd_port: 2379
+  etcd_ca_file: /var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt
+  etcd_client_cert: /var/run/asb-etcd-auth/client.crt
+  etcd_client_key: /var/run/asb-etcd-auth/client.key
+log:
+  stdout: true
+  level: debug
+  color: true
+openshift:
+  host: ""
+  ca_file: ""
+  bearer_token_file: ""
+  sandbox_role: edit
+  image_pull_policy: IfNotPresent
+  keep_namespace: false
+  keep_namespace_on_error: true
+  namespace: openshift-ansible-service-broker
+broker:
+  dev_broker: false
+  bootstrap_on_startup: true
+  refresh_interval: 600s
+  launch_apb_on_bind: false
+  output_request: false
+  recovery: true
+  ssl_cert_key: /etc/tls/private/tls.key
+  ssl_cert: /etc/tls/private/tls.crt
+  auto_escalate: False
+  auth:
+    - type: basic
+      enabled: false
+secrets:
+- title: digital-ocean-apikey
+  secret: digital-ocean-api-key
+  apb_name: dh-rhsummit18-mysql-digital-ocean-apb
