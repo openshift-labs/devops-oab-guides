@@ -5,7 +5,7 @@ You have the CoolStore application tested and verified in the staging environmen
 lab you will create the production environment in order to go live with the application.
 
 
-#### Production OpenShift Cluster
+### Production OpenShift Cluster
 
 OpenShift is a multi-tenant container platform which allows you to define granular access control 
 on who can access what and perform what at the project level. Furthermore, it allows you to define 
@@ -23,7 +23,7 @@ You can use the following credentials to access the production OpenShift cluster
 * Production OpenShift User: `{{PROD_USER}}`
 * Production OpenShift Password: `{{PROD_PASSWORD}}`
 
-#### Accessing Production From A Pipeline
+### Accessing Production From A Pipeline
 
 The pipelines you have created so far had automatically access to the OpenShift environment they are running on since 
 Jenkins is able to detect that it's running on OpenShift. We needed of course to give it some access rights (authorization) 
@@ -125,7 +125,7 @@ pipeline {
                 message: "Enter release version to promote to PROD",
                 parameters: [
                   string(defaultValue: "prod", description: 'Name of the PROD project to create', name: 'PROD Project Name'),
-                  choice(choices: catalogTags.join('\n'), description: '', name: 'Catalog Release Version')
+                  choice(choices: catalogTags.join('\n'), description: '', name: 'Catalog Release Version'),
                   choice(choices: webTags.join('\n'), description: '', name: 'Web Release Version')
                 ]
               )
@@ -226,7 +226,7 @@ git push origin master
 ----
 
 
-#### Create the PROD OpenShift Pipeline 
+### Create the PROD OpenShift Pipeline 
 
 Go to the OpenShift web console (development cluster) abd the *CI/CD* project. Click on 
 *Add to Project* > *Import YAML/JSON* and paste the following YAML file to create a pipeline 
