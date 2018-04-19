@@ -190,7 +190,7 @@ image::devops-stage-gogs-release.png[Gogs release]
 Point your browser to the Nexus Maven Repository to review the binary release of the Catalog service in form 
 of a jar file:
 
-Nexus Maven Repository: http://{{NEXUS_EXTERNAL_URL}}/#browse/browse:maven-all-public:com%2Fredhat%2Fcloudnative%2Fcatalog[http://{{NEXUS_EXTERNAL_URL}}/#browse/browse:maven-all-public:com%2Fredhat%2Fcloudnative%2Fcatalog]
+Nexus Maven Repository: {{NEXUS_EXTERNAL_URL}}/#browse/browse:maven-all-public:com%2Fredhat%2Fcloudnative%2Fcatalog[http://{{NEXUS_EXTERNAL_URL}}/#browse/browse:maven-all-public:com%2Fredhat%2Fcloudnative%2Fcatalog]
 
 image::devops-stage-nexus.png[Nexus released artifact]
 
