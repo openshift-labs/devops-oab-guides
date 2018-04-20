@@ -16,7 +16,7 @@ The lab application used in this workshop is available at https://github.com/ope
 
 *CAUTION: if using 2 clusters (dev, prod) for these labs, make sure the prod cluster image registry is accessible from the dev cluster*
 
-# Run Guides Locally for Development
+# Run Guides Locally
 ```
 $ git clone https://github.com/openshift-labs/devops-oab-guides.git
 $ cd devops-oab-guides
@@ -29,7 +29,9 @@ $ docker run -it --rm -p 8080:8080 -v $(pwd):/app-data \
 
 # Deploy Guides on OpenShift
 ```
-$ oc new-app -f openshift/guides-template.yml --param=OPENSHIFT_MASTER=$(oc whoami --show-server) 
+$ oc new-app osevg/workshopper:latest --name=guides \
+    -e WORKSHOPS_URLS="https://raw.githubusercontent.com/openshift-labs/devops-oab-guides/master/_summit-devops-lab.yml"
+$ oc expose svc/guides
 ```
 
 # Prepare OpenShift Cluster for Labs
