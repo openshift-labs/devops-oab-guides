@@ -23,8 +23,6 @@ corporate-standard CA that you already have installed on your system.
 Once you issue the `oc login` command, you will be prompted for the username and password 
 combination for your user account. Replace XX with the username given to you by the instructor:
 
-CAUTION: Replace `{{PROJECT_SUFFIX}}` with the number provided to you by the instructor.
-
 * Username: `{{OPENSHIFT_USER}}`
 * Password: `{{OPENSHIFT_PASSWORD}}`
 
