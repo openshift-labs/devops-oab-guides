@@ -1,17 +1,26 @@
 ## Create APB
 
+Create an APB project using the APB CLI:
+
 ```
-# Commands Cheat Sheet
 $ apb init mysql-digital-ocean-apb --bindable
+```
+
+Take a look inside the `mysql-digital-ocean-apb` directory and review `apb.yml`
+
+```
 $ cd mysql-digital-ocean-apb
+$ cat apb.yml
+```
 
-# take a look at current apb.yml
+Define the parameters for the MySQL APB by replacing it with the following:
 
+```
 $ cat <<'EOF' > apb.yml
 _params: &_params
   - name: service_name
     title: Database service name
-    description: The name of the service. Used to name droplet and Openshit service
+    description: The name of the service. Used to name droplet and OpenShit service
     type: string
     default: domysql
     pattern: "^[a-zA-Z0-9]+[a-zA-Z0-9]*[a-zA-Z0-9]+$"
@@ -83,13 +92,21 @@ plans:
       cost: $40.00 monthly
     parameters: *_params
 EOF
+```
 
+Explain how playbooks work in APBs and review the existing playbooks in `playbooks/`
 
-# take a look at playbooks/
+Copy the existing roles and playbooks to use the Digital Oceal ansible modules avaialble 
+on Ansible Galaxy:
 
-# the \ is to disable the alias which is usually 'cp -i' and asks for each overwrite
-$ \cp -rf /opt/labs/mysql-digital-ocean-apb/{playbooks,roles} .
+```
+$ \cp -rf /opt/labs/mysql-digital-ocean-apb/{playbooks,roles} .     # \ is to disable the 'cp -i' alias
+```
 
+Explain the APB process (build docker image, push ,etc). Although APB CLI generates a Dockerfile since
+you need some extra python libraries, replace it with this one:
+
+```
 $ cat <<'EOF' > Dockerfile
 FROM openshift3/apb-base
 
@@ -102,26 +119,35 @@ RUN chmod -R g=u /opt/{ansible,apb}
 USER apb
 ENV ANSIBLE_HOST_KEY_CHECKING false
 EOF
-
-$ apb prepare
-
-# review Dockerfile and note LABEL
-
-$ apb build
-
-$ oc login -u admin -p openshift
-$ apb push --registry-route {{ PROD_REGISTRY }}
-
-$ oc login -u developer
-
-# Go to stage project and provision
-
 ```
 
-NOTE: registry certs need to be on the workstation, copied from /etc/origin/master/ca.crt to /etc/docker/certs.d/{{ PROD_REGISTRY }}
+Now you are done with authoring the APB. Prepare it for distribution:
 
-TODO:
+```
+$ apb prepare
+```
+`
+Review Dockerfile and note LABEL
 
-* Create MySQL APB on Digital Ocean
-* Delete MySQL deployment from STAGE
-* Deploy the new MySQL APB in STAGE and wire to Catalog
+Build the APB container image:
+```
+$ apb build
+```
+
+Now you should add it to the service catalog. You have to log in as admin first since this is admin thing to do:
+
+```
+$ oc login -u admin -p openshift
+$ apb push --registry-route {{ OPENSHIFT_REGISTRY }}
+```
+
+Log back in as your own user for rest of the labs
+```
+$ oc login -u {{ OPENSHIFT_USER }}
+```
+
+Go to the OpenShift Web Console and inside the STAGE project, go to Catalog from the left sidebar and 
+choose **Digital Ocean MySQL* to provision it. We hav already added a secret to keep Digital Ocean API authentications. 
+You will read what that means in the next paragraph!
+
+Connect it with your app now.

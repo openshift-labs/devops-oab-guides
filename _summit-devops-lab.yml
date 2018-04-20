@@ -6,10 +6,11 @@ content:
 
 vars:
   OPENSHIFT_URL: "https://masterdev-GUID.generic.opentlc.com:8443"
-  OPENSHIFT_USER: "developer"
+  OPENSHIFT_USER: "student"
   OPENSHIFT_PASSWORD: "openshift"
+  OPENSHIFT_REGISTRY: "docker-registry-default.devapps-GUID.generic.opentlc.com"
   PROD_URL: "https://masterprod-GUID.generic.opentlc.com:8443"
-  PROD_USER: "developer"
+  PROD_USER: "student"
   PROD_PASSWORD: "openshift"
   PROD_REGISTRY: "docker-registry-default.apps-GUID.generic.opentlc.com"
   OPENSHIFT_DOCS_BASE: "https://docs.openshift.com/container-platform/3.9"
