@@ -179,11 +179,7 @@
       vars:
         project_name: "{{ lab_infra_project }}"
         workshopper_content_url_prefix: "https://raw.githubusercontent.com/openshift-labs/devops-oab-guides/master"
-        workshopper_workshop_urls: "https://raw.githubusercontent.com/openshift-labs/devops-oab-guides/master/_devops-workshop.yml"
-        workshopper_env_vars:
-          PROJECT_SUFFIX: ""
-          GOGS_URL: http://{{ gogs_hostname }}
-          OPENSHIFT_DOCS_BASE: "https://docs.openshift.com/container-platform/3.7"
+        workshopper_workshop_urls: "https://raw.githubusercontent.com/openshift-labs/devops-oab-guides/master/_summit-devops-lab.yml"
       tags: guides
 
     # create projects
