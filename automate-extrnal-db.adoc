@@ -100,7 +100,7 @@ Copy the existing roles and playbooks to use the Digital Oceal ansible modules a
 on Ansible Galaxy:
 
 ```
-$ \cp -rf /opt/labs/mysql-digital-ocean-apb/{playbooks,roles} .     # \ is to disable the 'cp -i' alias
+$ \cp -rf ~/support/mysql-digital-ocean-apb/{playbooks,roles} .     # \ is to disable the 'cp -i' alias
 ```
 
 Explain the APB process (build docker image, push ,etc). Although APB CLI generates a Dockerfile since
