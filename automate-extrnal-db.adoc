@@ -146,8 +146,8 @@ Log back in as your own user for rest of the labs
 $ oc login -u {{ OPENSHIFT_USER }}
 ```
 
-Go to the OpenShift Web Console and inside the STAGE project, go to Catalog from the left sidebar and 
-choose **Digital Ocean MySQL* to provision it. We hav already added a secret to keep Digital Ocean API authentications. 
+Go to the OpenShift Web Console and inside the STAGE project and in the _Search Catalog_ field search for 
+_Digital Ocean_  and click on **Digital Ocean MySQL* to provision it. We hav already added a secret to keep Digital Ocean API authentications. 
 You will read what that means in the next paragraph!
 
 Connect it with your app now.

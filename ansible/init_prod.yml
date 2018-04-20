@@ -9,6 +9,8 @@
   tasks:
     - include_role:
         name: openshift_common_facts
+      vars:
+        set_hostname_suffix: false
       tags: always
 
     - name: check to be logged in as cluster admin
