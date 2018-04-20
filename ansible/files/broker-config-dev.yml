@@ -29,7 +29,7 @@ openshift:
   bearer_token_file: ""
   sandbox_role: edit
   image_pull_policy: IfNotPresent
-  keep_namespace: false
+  keep_namespace: true
   keep_namespace_on_error: true
   namespace: openshift-ansible-service-broker
 broker:
