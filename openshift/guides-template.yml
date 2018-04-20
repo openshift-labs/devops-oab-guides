@@ -152,7 +152,6 @@ objects:
         PROD_PASSWORD: "openshift"
         PROD_REGISTRY: "PROD-REGISTRY"
         OPENSHIFT_DOCS_BASE: "https://docs.openshift.com/container-platform/3.9"
-        NEXUS_URL: "http://nexus.lab-infra.svc:8081/repository/maven-all-public/"
         NEXUS_EXTERNAL_URL: "http://NEXUS-URL"
         GIT_HOSTNAME: "GOGS-HOSTNAME"
         GIT_SERVER_INTERNAL_URL: "http://gogs.lab-infra.svc:3000"

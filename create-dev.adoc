@@ -115,7 +115,7 @@ image from source code via Source-to-Image capability:
 ----
 oc new-app -f https://raw.githubusercontent.com/{{ LABS_GITHUB_ACCOUNT }}/devops-oab-labs/master/openshift/catalog-template.yaml \
       --param=GIT_URI=http://{{GIT_HOSTNAME}}/{{GIT_USER}}/catalog-spring-boot.git \
-      --param=MAVEN_MIRROR_URL={{NEXUS_URL}} 
+      --param=MAVEN_MIRROR_URL=http://nexus.lab-infra.svc:8081/repository/maven-all-public
 ----
 
 
