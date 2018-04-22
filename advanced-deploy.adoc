@@ -5,7 +5,7 @@ In this lab you will learn how to roll out new releases to production without im
 ### Background
 *Zero downtime* means that even during a deployment process, your service is responsive the whole time. Typical services in today's world are some HTTP services, so in practice this means that no requests are dropped at any point during the deployment process. During a typical deployment process we usually change our software to a newer version on the servers.
 
-OpenShift provides an easy way to do *Blue/Green deployments*. Blue/Green deployments is a technique for `releasing your application` in a `predictable` manner with a goal of `reducing any downtime associated with a release`. It's a quick way to prime your app before releasing, and also quickly roll back if you find issues.
+OpenShift provides an easy way to do *Blue/Green deployments*. Blue/Green deployments is a technique for **releasing your application** in a **predictable** manner with a goal of **reducing any downtime associated with a release**. It's a quick way to prime your app before releasing, and also quickly roll back if you find issues.
 
 Simply, you have two identical environments (infrastructure) with the “green” environment hosting the current production apps. and the "blue environment" ready to accept new versions of the application. In this environment you deploy the new version of the application, run smoke tests, and any other tests (including those to exercise/prime the OS, cache, CPU, etc). When things look good, you change the loadbalancer/reverse proxy/router to point to the blue environment.
 
@@ -176,6 +176,8 @@ Now, let's create a new Pipeline build in OpenShift that will use this Jenkins f
 
 Like before, on you `cicd{{PROJECT_SUFFIX}}` project, click on *Add to project -> Import YAML/JSON* menu and enter the following definition:
 
+CAUTION: In the following url(s), replace `GUID` with the guid provided to you.
+
 [source,shell,role=copypaste]
 ----
 apiVersion: build.openshift.io/v1
@@ -193,21 +195,13 @@ spec:
     jenkinsPipelineStrategy:
       env:
         - name: PROD_REGISTRY
-          value: "{{ prod_registry }}"
+          value: "{{ PROD_REGISTRY }}"
         - name: PROD_MASTER
-          value: "{{ prod_master }}"
+          value: "{{ PROD_URL }}"
         - name: PROD_PROJECT
-          value: "{{ prod_project }}"
+          value: "prod{{ PROJECT_SUFFIX }}"
       jenkinsfilePath: Jenkinsfile.catalog-prod
     type: JenkinsPipeline
-  triggers:
-    - github:
-        secret: CqPGlXcKJXXqKxW4Ye6z
-      type: GitHub
-    - generic:
-        secret: 4LXwMdx9vhQY4WXbLcFR
-      type: Generic
-    - type: ConfigChange
 ----
 
 You should now see the pipeline being executed and the canary release rolling out.

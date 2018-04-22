@@ -2,12 +2,14 @@
 
 Create an APB project using the APB CLI:
 
+[source,shell,role=copypaste]
 ```
 $ apb init mysql-digital-ocean-apb --bindable
 ```
 
 Take a look inside the `mysql-digital-ocean-apb` directory and review `apb.yml`
 
+[source,shell,role=copypaste]
 ```
 $ cd mysql-digital-ocean-apb
 $ cat apb.yml
@@ -15,6 +17,7 @@ $ cat apb.yml
 
 Define the parameters for the MySQL APB by replacing it with the following:
 
+[source,shell,role=copypaste]
 ```
 $ cat <<'EOF' > apb.yml
 _params: &_params
@@ -99,6 +102,7 @@ Explain how playbooks work in APBs and review the existing playbooks in `playboo
 Copy the existing roles and playbooks to use the Digital Oceal ansible modules avaialble 
 on Ansible Galaxy:
 
+[source,shell,role=copypaste]
 ```
 $ \cp -rf ~/support/mysql-digital-ocean-apb/{playbooks,roles} .     # \ is to disable the 'cp -i' alias
 ```
@@ -106,6 +110,7 @@ $ \cp -rf ~/support/mysql-digital-ocean-apb/{playbooks,roles} .     # \ is to di
 Explain the APB process (build docker image, push ,etc). Although APB CLI generates a Dockerfile since
 you need some extra python libraries, replace it with this one:
 
+[source,shell,role=copypaste]
 ```
 $ cat <<'EOF' > Dockerfile
 FROM openshift3/apb-base
@@ -123,6 +128,7 @@ EOF
 
 Now you are done with authoring the APB. Prepare it for distribution:
 
+[source,shell,role=copypaste]
 ```
 $ apb prepare
 ```
@@ -130,18 +136,23 @@ $ apb prepare
 Review Dockerfile and note LABEL
 
 Build the APB container image:
+
+[source,shell,role=copypaste]
 ```
 $ apb build
 ```
 
 Now you should add it to the service catalog. You have to log in as admin first since this is admin thing to do:
 
+[source,shell,role=copypaste]
 ```
 $ oc login -u admin -p openshift
 $ apb push --registry-route {{ OPENSHIFT_REGISTRY }}
 ```
 
 Log back in as your own user for rest of the labs
+
+[source,shell,role=copypaste]
 ```
 $ oc login -u {{ OPENSHIFT_USER }}
 ```

@@ -9,6 +9,8 @@ software delivery lifecycle and deploy the application into these deployment env
 The first thing we want to do to ensure that the `oc` command line tools was installed and successfully 
 added to your path. In order to login, you can use the `oc` command and then specify the server that you want to authenticate to. Issue the following command:
 
+CAUTION: In the following url(s), replace `GUID` with the guid provided to you.
+
 [source,shell,role=copypaste]
 ----
 oc login {{OPENSHIFT_URL}}
@@ -67,8 +69,6 @@ confirm trusting the certificate by click on *Confirm Security Exception*.
 
 The first screen you will see is the authentication screen. Enter in the following credentials:
 
-CAUTION: Replace `{{PROJECT_SUFFIX}}` with the number provided to you by the instructor.
-
 * Username: `{{OPENSHIFT_USER}}`
 * Password: `{{OPENSHIFT_PASSWORD}}`
 
@@ -91,8 +91,10 @@ front-end team:
 oc new-app -f https://raw.githubusercontent.com/{{ LABS_GITHUB_ACCOUNT }}/devops-oab-labs/master/openshift/web-template.yaml
 ----
 
-The source code for the Catalog service is available in the following git repository:
-http://{{GIT_HOSTNAME}}/{{GIT_USER}}/catalog-spring-boot.git
+CAUTION: In the following url(s), replace `GUID` with the guid provided to you.
+
+The source code for the Catalog service is available in the following git repository: +
+[blue]`\http://{{GIT_HOSTNAME}}/{{GIT_USER}}/catalog-spring-boot.git`
 
 You should build a container image for the Catalog as well in order to be able to deploy it. You can 
 store the Catalog image in the `cicd{{PROJECT_SUFFIX}}` project as well (similar to Web UI image) so that 
@@ -108,6 +110,8 @@ oc create -f https://raw.githubusercontent.com/{{ LABS_GITHUB_ACCOUNT }}/devops-
 
 Now you can deploy the Catalog service into the DEV environment using a template that builds the Catalog container 
 image from source code via Source-to-Image capability:
+
+CAUTION: In the following url(s), replace `GUID` with the guid provided to you.
 
 [source,shell,role=copypaste]
 ----

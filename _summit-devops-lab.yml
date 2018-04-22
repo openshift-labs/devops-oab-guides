@@ -17,11 +17,11 @@ vars:
   NEXUS_EXTERNAL_URL: "http://nexus-lab-infra.devapps-GUID.generic.opentlc.com"
   GIT_HOSTNAME: "gogs-lab-infra.devapps-GUID.generic.opentlc.com"
   GIT_SERVER_INTERNAL_URL: "http://gogs.lab-infra.svc:3000"
-  GIT_USER: "developer"
+  GIT_USER: "student"
   GIT_PASSWORD: "openshift"
   PROJECT_SUFFIX: ""
   PROJECTS_EXIST: "true"
-  PROD_USERNAME: "developer"
+  PROD_USERNAME: "student"
   LABS_GITHUB_ACCOUNT: "openshift-labs"
 
 modules:
@@ -34,3 +34,4 @@ modules:
   - automate-extrnal-db
   - create-prod
   - advanced-deploy
+  - env-info

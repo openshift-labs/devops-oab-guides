@@ -83,7 +83,7 @@ We could have done the same as we just did by using one single command on the Op
 oc new-app jenkins-persistent -n cicd{{PROJECT_SUFFIX}}
 ----
 
-WARNING: If you have succesfully deployed Jenkins, do NOT execute this command.
+WARNING: If you have successfully deployed Jenkins, do NOT execute this command.
 
 #### Store your pipeline definition in Git
 
@@ -93,7 +93,9 @@ When you log into Gogs you will notice there is an empty repository already crea
 
 image::devops-pipeline-gogs-cdinfra.png[Gogs project list]
 
-Now, clone the `cd-infra` git repository into your workspace as we will add the neccesary pipelines:
+Now, clone the `cd-infra` git repository into your workspace as we will add the necessary pipelines:
+
+CAUTION: In the following url(s), replace `GUID` with the guid provided to you.
 
 [source,shell,role=copypaste]
 ----
@@ -108,6 +110,8 @@ cd cd-infra
 ----
 
 We are going to create a Jenkinsfile to build and deploy our Catalog application into the DEV environment.
+
+CAUTION: In the following url(s), replace `GUID` with the guid provided to you.
 
 [source,shell,role=copypaste]
 ----
@@ -195,6 +199,8 @@ image::devops-pipeline-gogs-cdinfra-files.png[cd-infra project in Gogs]
 Create the OpenShift pipeline definition to use the Jenkins file. This is a regular OpenShift BuildConfig with a *JenkinsPipeline* strategy.
 
 First, let's create the Pipeline's BuildConfig definition:
+
+CAUTION: In the following url(s), replace `GUID` with the guid provided to you.
 
 [source,shell,role=copypaste]
 ----

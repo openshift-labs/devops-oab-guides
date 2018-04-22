@@ -23,6 +23,8 @@ cd cd-infra
 
 And then create a Jenkinsfile with the following content:
 
+CAUTION: In the following url(s), replace `GUID` with the guid provided to you.
+
 [source,shell,role=copypaste]
 ----
 cat <<'EOF' > Jenkinsfile.release
@@ -139,6 +141,8 @@ You can now create an OpenShift pipeline that refers to the `Jenkinsfile.release
 repository. In the *cicd{{PROJECT_SUFFIX}}* project, click on *Add to Project* > *Import YAML/JSON* and paste the following 
 into the field:
 
+CAUTION: In the following url(s), replace `GUID` with the guid provided to you.
+
 [source,shell,role=copypaste]
 ----
 apiVersion: build.openshift.io/v1
@@ -182,7 +186,10 @@ Go to *Builds* > *Pipelines* to see the pipeline execution in progress.
 After the pipeline is completed successfully (all green, yaay!), go the git repository in your browser to 
 review the git release that is created:
 
-Git server web: http://{{GIT_HOSTNAME}}/{{GIT_USER}}/catalog-spring-boot/releases[http://{{GIT_HOSTNAME}}/{{GIT_USER}}/catalog-spring-boot]
+CAUTION: In the following url(s), replace `GUID` with the guid provided to you.
+
+Git server web: +
+[blue]`\http://{{GIT_HOSTNAME}}/{{GIT_USER}}/catalog-spring-boot/releases`
 
 image::devops-stage-gogs-release.png[Gogs release]
 
@@ -190,7 +197,11 @@ image::devops-stage-gogs-release.png[Gogs release]
 Point your browser to the Nexus Maven Repository to review the binary release of the Catalog service in form 
 of a jar file:
 
-Nexus Maven Repository: {{NEXUS_EXTERNAL_URL}}/#browse/browse:maven-all-public:com%2Fredhat%2Fcloudnative%2Fcatalog
+CAUTION: In the following url(s), replace `GUID` with the guid provided to you.
+
+Nexus Maven Repository: +
+[blue]`\{{NEXUS_EXTERNAL_URL}}/#browse/browse:maven-all-public:com%2Fredhat%2Fcloudnative%2Fcatalog`
+
 
 image::devops-stage-nexus.png[Nexus released artifact]
 
@@ -210,8 +221,8 @@ binary release catalog and deploy the container image in the staging environment
 If you are comfortable with `vi` text editor, we envy you. Use that and good luck! (don't 
 forget to run `git commit` and `git push`)
 
-If not, use the git server web for editing the `Jenkinsfile.release`:
-http://{{GIT_HOSTNAME}}/{{GIT_USER}}/cd-infra/src/master/Jenkinsfile.release
+If not, use the git server web for editing the `Jenkinsfile.release`: +
+[blue]`\http://{{GIT_HOSTNAME}}/{{GIT_USER}}/cd-infra/src/master/Jenkinsfile.release`
 
 Click on the pencil icon to edit `Jenkinsfile.release` and add the following `stages` at the 
 end of the release pipeline and click on *Commit* button.

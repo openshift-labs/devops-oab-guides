@@ -6,7 +6,7 @@
   vars:
     lab_infra_project: lab-infra
     user_gogs_admin: gogs
-    user_gogs_user: developer
+    user_gogs_user: student
     user_gogs_password: openshift
     labs_github_account: openshift-labs
     labs_github_ref: master

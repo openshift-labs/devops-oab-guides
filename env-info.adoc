@@ -1,0 +1,68 @@
+## Appendix: Environment Info
+
+You find all urls, hostnames, usernames and passwords that are needed during the 
+labs in this page. Note that the urls are also embedded inside the labs so that you 
+don't have to go back and forth between this page and the labs.
+
+#### How To Get a GUID
+Grab a GUID by pointing your browser at: + 
+https://www.opentlc.com/guidgrabber/guidgrabber.cgi 
+
+And then choose the following. 
+
+* Lab Code: `L1011 - DevOps with OpenShift and Ansible`
+* Activation Key: `devops`
+
+#### Lab Environment
+
+Each user had the following personal (not shared) lab environment:
+
+image::devops-labenv-arch.png[GUID Grabber, width=440]
+
+
+**WORKSTATION**
+
+Hostname: [blue]`workstation-GUID.generic.opentlc.com`
+
+Open a Terminal on the lab laptop and open a remote shell into the Workstation via 
+the following command (no user na password needed):
+
+[source,shell,role=copypaste]
+----
+$ ssh workstation-GUID.generic.opentlc.com
+----
+
+
+**OPENSHIFT DEV CLUSTER**
+
+Web Console: [blue]`\{{ OPENSHIFT_URL }}` + 
+Image Registry: [blue]`{{ OPENSHIFT_REGISTRY }}` + 
+
+Username: `{{ OPENSHIFT_USER }}` + 
+Password: `{{ OPENSHIFT_PASSWORD }}` +
+
+
+**OPENSHIFT PROD CLUSTER**
+
+Web Console: [blue]`\{{ PROD_URL }}` + 
+Image Registry: [blue]`{{ PROD_REGISTRY }}` + 
+
+Username: `{{ PROD_USER }}` + 
+Password: `{{ PROD_PASSWORD }}` + 
+
+
+**GIT SERVER**
+
+Web: [blue]`\http://{{ GIT_HOSTNAME }}` + 
+
+Username: `{{ GIT_USER }}` + 
+Password: `{{ GIT_PASSWORD }}` + 
+
+**NEXUS MAVEN REPOSITORY**
+
+Web: [blue]`\{{ NEXUS_EXTERNAL_URL }}`
+
+
+**OPENSHIFT DOCS**
+
+Web: {{ OPENSHIFT_DOCS_BASE }}

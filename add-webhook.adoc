@@ -31,7 +31,7 @@ image::devops-webhook-pipeline-config.png[Pipeline config]
 
 Go to Git server by pointing your browser at Git server web url and login using your credentials:
 
-CAUTION: Replace `{{PROJECT_SUFFIX}}` with the number provided to you by the instructor.
+CAUTION: In the following url(s), replace `GUID` with the guid provided to you.
 
 * Git Server Web:  `http://{{GIT_HOSTNAME}}`
 * Username: `{{GIT_USER}}`

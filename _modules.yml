@@ -17,3 +17,5 @@ modules:
     name: Promote Builds to Production
   advanced-deploy:
     name: Advanced Zerodowntime Deploy
+  env-info:
+    name: "Appendix: Lab Environment Info"
