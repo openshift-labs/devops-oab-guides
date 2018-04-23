@@ -4,6 +4,7 @@ Create an APB project using the APB CLI:
 
 [source,shell,role=copypaste]
 ```
+$ cd ~
 $ apb init mysql-digital-ocean-apb --bindable
 ```
 
@@ -52,7 +53,7 @@ _params: &_params
     required: true
   - name: mysql_password
     title: Database user password
-    description: Password to connect to MySQL (generated if blank)
+    description: Password to connect to MySQL
     type: string
     required: true
     display_type: password
@@ -115,14 +116,18 @@ you need some extra python libraries, replace it with this one:
 $ cat <<'EOF' > Dockerfile
 FROM openshift3/apb-base
 
-RUN yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-$(rpm -E '%{rhel}').noarch.rpm && yum -y update && yum -y install python git python-pip && yum clean all
-RUN pip install --upgrade pip && pip install 'dopy>=0.3.7,<=0.3.7'
+LABEL "com.redhat.apb.spec"=\
+
+RUN yum-config-manager --disable rhel-7-server-htb-rpms && yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm && yum -y update && yum -y install python git python-pip python-requests python-setuptools python-wheel && yum clean all
+RUN pip install --upgrade pip --user apb --cache-dir /tmp && pip install --user apb 'dopy>=0.3.7,<=0.3.7' --cache-dir /tmp        
 RUN chown -R apb:0 /opt/apb && chmod -R g=u /opt/apb /etc/passwd
+
 COPY playbooks /opt/apb/actions
 COPY roles /opt/apb/actions/roles
 RUN chmod -R g=u /opt/{ansible,apb}
 USER apb
 ENV ANSIBLE_HOST_KEY_CHECKING false
+
 EOF
 ```
 
@@ -139,7 +144,7 @@ Build the APB container image:
 
 [source,shell,role=copypaste]
 ```
-$ apb build
+$ sudo apb build
 ```
 
 Now you should add it to the service catalog. You have to log in as admin first since this is admin thing to do:
@@ -147,7 +152,7 @@ Now you should add it to the service catalog. You have to log in as admin first 
 [source,shell,role=copypaste]
 ```
 $ oc login -u admin -p openshift
-$ apb push --registry-route {{ OPENSHIFT_REGISTRY }}
+$ sudo apb push --registry-route {{ OPENSHIFT_REGISTRY }}
 ```
 
 Log back in as your own user for rest of the labs
