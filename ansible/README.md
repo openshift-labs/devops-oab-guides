@@ -15,6 +15,7 @@ Playbook Variables
 | Variable              | Default Value | Description   |
 |-----------------------|---------------|---------------|
 |`lab_infra_project`    | `lab-infra`   | Project name to deploy Git server and lab guides  |
+|`openshift_user`       | `student`     | OpenShift user to set as admin for projects |
 |`user_gogs_admin`      | `gogs`        | Admin username to create in Gogs |
 |`user_gogs_test`       | `test`        | Test username to create in Gogs |
 |`user_gogs_password`   | `openshift`   | Gogs password to configure for admin and test users |
@@ -45,12 +46,14 @@ Tips
   docker pull registry.access.redhat.com/rhscl/nodejs-4-rhel7:latest
   docker pull registry.access.redhat.com/openshift3/jenkins-2-rhel7:latest
   docker pull registry.access.redhat.com/openshift3/jenkins-slave-maven-rhel7:latest
-  docker pull registry.access.redhat.com/rhscl/postgresql-95-rhel7:latest
-  docker pull registry.access.redhat.com/rhscl/postgresql-96-rhel7:latest
+  docker pull registry.access.redhat.com/rhscl/mysql-57-rhel7
+  docker pull registry.access.redhat.com/openshift3/ose-deployer
+  docker pull registry.access.redhat.com/openshift3/ose-sti-builder
   docker pull sonatype/nexus3:3.7.1
   docker pull openshiftdemos/gogs:0.11.34
   docker pull osevg/workshopper:latest
   docker pull siamaksade/rhsummit18-devops-web
+
   ```
 
 * Add an admin user to the cluster. Run the following as `system:admin`:
