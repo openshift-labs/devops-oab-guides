@@ -34,5 +34,5 @@
     - name: restart ansible broker
       shell: |
         {{ openshift_cli }} rollout latest dc/asb -n openshift-ansible-service-broker
-        {{ openshift_cli }} oc delete pod -l webconsole=true -n openshift-web-console
+        {{ openshift_cli }} delete pod -l webconsole=true -n openshift-web-console
       tags: broker
