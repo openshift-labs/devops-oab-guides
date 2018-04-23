@@ -11,7 +11,7 @@
     labs_github_account: openshift-labs
     labs_github_ref: master
     openshift_cli: oc
-    openshift_user: student
+    project_admin: student
     clean_init: false
     configure_broker: true
     digitalocean_api_key: 
@@ -175,20 +175,20 @@
       tags: gogs
 
     # deploy guides
-    - import_role:
-        name: openshift_workshopper
-      vars:
-        project_name: "{{ lab_infra_project }}"
-        workshopper_content_url_prefix: "https://raw.githubusercontent.com/openshift-labs/devops-oab-guides/master"
-        workshopper_workshop_urls: "https://raw.githubusercontent.com/openshift-labs/devops-oab-guides/master/_summit-devops-lab.yml"
-      tags: guides
+    # - import_role:
+    #     name: openshift_workshopper
+    #   vars:
+    #     project_name: "{{ lab_infra_project }}"
+    #     workshopper_content_url_prefix: "https://raw.githubusercontent.com/openshift-labs/devops-oab-guides/master"
+    #     workshopper_workshop_urls: "https://raw.githubusercontent.com/openshift-labs/devops-oab-guides/master/_summit-devops-lab.yml"
+    #   tags: guides
 
     # create projects
     - name: create cicd, dev and stage projects
       shell: |
-        {{ openshift_cli }} adm new-project dev   --admin="{{ openshift_user }}" --display-name="CoolStore DEV"
-        {{ openshift_cli }} adm new-project stage --admin="{{ openshift_user }}" --display-name="CoolStore STAGE"
-        {{ openshift_cli }} adm new-project cicd  --admin="{{ openshift_user }}" --display-name="CI/CD"
+        {{ openshift_cli }} adm new-project dev   --admin="{{ project_admin }}" --display-name="CoolStore DEV"
+        {{ openshift_cli }} adm new-project stage --admin="{{ project_admin }}" --display-name="CoolStore STAGE"
+        {{ openshift_cli }} adm new-project cicd  --admin="{{ project_admin }}" --display-name="CI/CD"
         
         {{ openshift_cli }} adm policy add-role-to-group admin                system:serviceaccounts:cicd        -n dev
         {{ openshift_cli }} adm policy add-role-to-group admin                system:serviceaccounts:cicd        -n stage

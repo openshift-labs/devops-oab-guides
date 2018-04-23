@@ -15,7 +15,7 @@ Playbook Variables
 | Variable              | Default Value | Description   |
 |-----------------------|---------------|---------------|
 |`lab_infra_project`    | `lab-infra`   | Project name to deploy Git server and lab guides  |
-|`openshift_user`       | `student`     | OpenShift user to set as admin for projects |
+|`project_admin`        | `student`     | OpenShift user to set as admin for projects |
 |`user_gogs_admin`      | `gogs`        | Admin username to create in Gogs |
 |`user_gogs_test`       | `test`        | Test username to create in Gogs |
 |`user_gogs_password`   | `openshift`   | Gogs password to configure for admin and test users |
