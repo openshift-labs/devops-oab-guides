@@ -123,7 +123,7 @@ pipeline {
   stages {
     stage('Build JAR') {
       steps {
-        git url: 'http://{{GIT_HOSTNAME}}/developer/catalog-spring-boot.git'
+        git url: 'http://{{GIT_HOSTNAME}}/{{GIT_USER}}/catalog-spring-boot.git'
         sh "cp .settings.xml ~/.m2/settings.xml"
         sh "mvn package"
       }
@@ -185,6 +185,8 @@ Now, let's add the Jenkinsfile to the `cd-infra` git repository:
 [source,shell,role=copypaste]
 ----
 git add Jenkinsfile.catalog-build
+git config --global user.email "{{GIT_USER}}@gogs.com"
+git config --global user.name "{{GIT_USER}}"
 git commit -m "build pipeline added"
 git push origin master
 ----
@@ -198,13 +200,14 @@ image::devops-pipeline-gogs-cdinfra-files.png[cd-infra project in Gogs]
 
 Create the OpenShift pipeline definition to use the Jenkins file. This is a regular OpenShift BuildConfig with a *JenkinsPipeline* strategy.
 
-First, let's create the Pipeline's BuildConfig definition:
+Click on 
+*Add to Project* > *Import YAML/JSON* and paste the following YAML file to create a pipeline 
+that uses the `Jenkinsfile.catalog-build` from the `cd-infra` git repository
 
 CAUTION: In the following url(s), replace `GUID` with the guid provided to you.
 
 [source,shell,role=copypaste]
 ----
-cat <<'EOF' > /tmp/pipeline-catalog-build.yml
 apiVersion: build.openshift.io/v1
 kind: BuildConfig
 metadata:
@@ -214,7 +217,7 @@ spec:
   source:
     git:
       ref: master
-      uri: "http://{{GIT_HOSTNAME}}/developer/cd-infra.git"
+      uri: "http://{{GIT_HOSTNAME}}/{{GIT_USER}}/cd-infra.git"
     type: Git
   strategy:
     jenkinsPipelineStrategy:
@@ -233,17 +236,9 @@ spec:
         secret: 4LXwMdx9vhQY4WXbLcFR
       type: Generic
     - type: ConfigChange
-EOF
 ----
 
-NOTE: At this moment you can not create the pipeline definition using the OpenShift UI
-
-And now let's add this Pipeline to OpenShift:
-
-[source,shell,role=copypaste]
-----
-oc create -f /tmp/pipeline-catalog-build.yml -n cicd{{PROJECT_SUFFIX}}
-----
+image::devops-pipeline-add.png[Add pipeline to project]
 
 You should inmediatly see the pipeline in the OpenShift web console.
 
