@@ -51,3 +51,7 @@ webhook works correctly by clicking on the webhook you just created from the lis
 of webhooks and then on the *Test Delivery* button.
 
 image::devops-webhook-gogs-test-delivery.png[Test delivery]
+
+You should see a new Pipeline build being run.
+
+image::devops-webhook-gogs-webhook-manual-build.png[Manual build]
