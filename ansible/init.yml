@@ -11,6 +11,7 @@
     labs_github_account: openshift-labs
     labs_github_ref: master
     openshift_cli: oc
+    openshift_user: student
     clean_init: false
     configure_broker: true
     digitalocean_api_key: 
@@ -185,9 +186,9 @@
     # create projects
     - name: create cicd, dev and stage projects
       shell: |
-        {{ openshift_cli }} new-project dev   --display-name="CoolStore DEV"
-        {{ openshift_cli }} new-project stage --display-name="CoolStore STAGE"
-        {{ openshift_cli }} new-project cicd  --display-name="CI/CD"
+        {{ openshift_cli }} adm new-project dev   --admin="{{ openshift_user }}" --display-name="CoolStore DEV"
+        {{ openshift_cli }} adm new-project stage --admin="{{ openshift_user }}" --display-name="CoolStore STAGE"
+        {{ openshift_cli }} adm new-project cicd  --admin="{{ openshift_user }}" --display-name="CI/CD"
         
         {{ openshift_cli }} adm policy add-role-to-group admin                system:serviceaccounts:cicd        -n dev
         {{ openshift_cli }} adm policy add-role-to-group admin                system:serviceaccounts:cicd        -n stage
