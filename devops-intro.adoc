@@ -2,12 +2,12 @@
 
 In this section we will give an overview of DevOps, Continuous Integration and Continuous Delivery concepts which are required throughout this session.
 
-#### What is DevOps?
+### What is DevOps?
 DevOps is a combination of development and operations principles in order to create a culture that emphasize communication, collaboration, and cohesion between the traditionally separate developer and IT operations teams. Rather than seeing these as two distinct groups who are responsible for their specific tasks but don’t really work together, the DevOps methodology recognizes the interdependence of the two groups. By integrating these functions as one team or department, DevOps helps an organization deploy software more frequently, while maintaining service stability and gaining the speed necessary for more innovation.
 
 In a DevOps environment, cross-functionality, shared responsibilities, and trust are all promoted.
 
-#### Continuous Everything
+### Continuous Everything
 
 DevOps essentially extends the continuous development goals of the Agile movement to continuous integration and continuous delivery.
 Continuous Integration is the practice of constantly merging development work with a main line of code (e.g. master branch) so that changes can be tested and make sure they work with all other changes. The goal is to test the code as often as possible in order catch issues early in the development phase. In the continuous integration process, automated tests such as unit tests play an important role and are essential for a functioning continuous integration process.
@@ -17,12 +17,12 @@ Continuous Deployment is the most advanced evolution of continuous delivery and 
 
 image::devops-intro-cd.png[Continuous Delivery and Continuous Deployment]
 
-#### Jenkins CI Engine
+### Jenkins CI Engine
 
 Jenkins is a self-contained, extensible, open source automation server which can be used to automate all sorts of tasks such as building, testing, and deploying software. Although Jenkins was first popular as a continuous integration engine, its usage domain soon expanded to other areas such as Continuous Delivery pipelines due to its sheer popularity. Jenkins enjoys a very active community which has built out hundreds of plugins to extend Jenkins to automate almost anything. Jenkins provides support for all popular source code management systems (SCM) , popular build tools, as well as testing frameworks and report generators.  
 The latest major release of Jenkins included a powerful Continuous Delivery pipeline support using a Groovy Domain Specific Language (DSL) which is referred to as _Pipeline as Code_.
 
-#### OpenShift Container Platform
+### OpenShift Container Platform
 OpenShift is a container application platform from Red Hat that builds on top of docker and Kubernetes to to let you easily and quickly build, develop, and deploy containerized applications in nearly any infrastructure, public or private. OpenShift is optimized for continuous application development and multi-tenant deployment. OpenShift adds developer and operations-centric tools on top of Kubernetes to enable rapid application development, easy deployment and scaling, and long-term lifecycle maintenance for small and large teams.
 
 image::devops-intro-openshift-arch.png[OpenShift Architecture]
@@ -51,7 +51,7 @@ _Template_: describes a set of objects (pods, build configs, deployment configs,
 
 As an administrator, you can enable your developers to request new Projects which come with predefined roles, quotas, and security controls to fairly divide access.
 
-#### CoolStore Application
+### CoolStore Application
 
 CoolStore is a fully functional online shop application for selling Red Hat merchandise products and is used in the following labs to build and deploy through the CI/CD pipeline.
 
