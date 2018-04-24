@@ -152,7 +152,7 @@ Now you should add it to the service catalog. You have to log in as admin first 
 [source,shell,role=copypaste]
 ```
 oc login -u admin -p openshift
-sudo apb push --registry-route {{ OPENSHIFT_REGISTRY }}
+apb push --registry-route {{ OPENSHIFT_REGISTRY }}
 ```
 
 Log back in as your own user for rest of the labs
