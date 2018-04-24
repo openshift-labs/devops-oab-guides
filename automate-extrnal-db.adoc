@@ -193,9 +193,9 @@ Execute following commands to find correct namespace and then read pod logs. You
 
 [source,shell,role=copypaste]
 ```
-$ oc login -u admin -p openshift
-$ oc project $(oc get project -l apb-fqname=localregistry-mysql-digital-ocean-apb --no-headers=true | awk '{print $1}')
-$ oc logs -f $(oc get po -l apb-fqname=localregistry-mysql-digital-ocean-apb --no-headers=true | awk '{print $1}')
+oc login -u admin -p openshift
+oc project $(oc get project -l apb-fqname=localregistry-mysql-digital-ocean-apb --no-headers=true | awk '{print $1}')
+oc logs -f $(oc get po -l apb-fqname=localregistry-mysql-digital-ocean-apb --no-headers=true | awk '{print $1}')
 ```
 
 Log back in as your own user for rest of the labs
