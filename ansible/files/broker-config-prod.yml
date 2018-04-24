@@ -2,7 +2,7 @@ registry:
   - type: rhcc
     name: rh
     url:  https://registry.access.redhat.com
-    org:  
+    org:
     tag:  v3.9.14
     white_list: [.*-apb$]
 
@@ -53,4 +53,4 @@ broker:
 secrets:
 - title: digital-ocean-apikey
   secret: digital-ocean-api-key
-  apb_name: dh-rhsummit18-mysql-digital-ocean-apb
+  apb_name: dh-mysql-digital-ocean-apb
