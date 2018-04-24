@@ -1,19 +1,19 @@
 ## Promote Builds to Production
 
 
-You have the CoolStore application tested and verified in the staging environment and in this 
+You have the CoolStore application tested and verified in the staging environment and in this
 lab you will create the production environment in order to go live with the application.
 
 
 ### Production OpenShift Cluster
 
-OpenShift is a multi-tenant container platform which allows you to define granular access control 
-on who can access what and perform what at the project level. Furthermore, it allows you to define 
-fine-grained policies on how the network traffic can flow between pods in order to fulfill the 
-security requirements in your organization. Nevertheless, many organizations opt to use a dedicated 
-OpenShift cluster for the production workloads which is separated at the infrastructure level from 
-the development and test environments. Therefore, in this lab you will use a separate OpenShift cluster 
-for production in order to experience how real-life production scenarios look like when going to production 
+OpenShift is a multi-tenant container platform which allows you to define granular access control
+on who can access what and perform what at the project level. Furthermore, it allows you to define
+fine-grained policies on how the network traffic can flow between pods in order to fulfill the
+security requirements in your organization. Nevertheless, many organizations opt to use a dedicated
+OpenShift cluster for the production workloads which is separated at the infrastructure level from
+the development and test environments. Therefore, in this lab you will use a separate OpenShift cluster
+for production in order to experience how real-life production scenarios look like when going to production
 with an application.
 
 
@@ -27,23 +27,23 @@ CAUTION: In the following url(s), replace `GUID` with the guid provided to you.
 
 ### Accessing Production From A Pipeline
 
-The pipelines you have created so far had automatically access to the OpenShift environment they are running on since 
-Jenkins is able to detect that it's running on OpenShift. We needed of course to give it some access rights (authorization) 
-which we had done before hand so that it can deploy apps onto projects, but we didn't need to specify where OpenShift 
-is and how to authenticate to it. 
+The pipelines you have created so far had automatically access to the OpenShift environment they are running on since
+Jenkins is able to detect that it's running on OpenShift. We needed of course to give it some access rights (authorization)
+which we had done before hand so that it can deploy apps onto projects, but we didn't need to specify where OpenShift
+is and how to authenticate to it.
 
-Jenkins and the pipeline however have no idea where the production environment is, which is expected! We need to specify 
-how to authenticate to the production cluster in order for the pipeline to be able to perform operations on the 
-production cluster. 
+Jenkins and the pipeline however have no idea where the production environment is, which is expected! We need to specify
+how to authenticate to the production cluster in order for the pipeline to be able to perform operations on the
+production cluster.
 
-How can we do that now? 
+How can we do that now?
 
-Remember {{OPENSHIFT_DOCS_BASE}}/dev_guide/secrets.html[OpenShift secrets] from previous labs? Well, we need 
-them again. We can create a secret that securely stores the production cluster credentials which will then 
+Remember {{OPENSHIFT_DOCS_BASE}}/dev_guide/secrets.html[OpenShift secrets] from previous labs? Well, we need
+them again. We can create a secret that securely stores the production cluster credentials which will then
 be used in Jenkins and the pipeline via the Jenkins Credentials, the same way as you did in the previous labs.
 
 
-In addition to username and password, OpenShift provides an authentication token which can be used by users and 
+In addition to username and password, OpenShift provides an authentication token which can be used by users and
 APIs to interact with OpenShift. Log into production OpenShift using your production credentials:
 
 CAUTION: In the following url(s), replace `GUID` with the guid provided to you.
@@ -63,8 +63,8 @@ You can get the authentication token using the following command:
 oc whoami -t
 ----
 
-You can now create a secret to securely store the production cluster credentials (auth token) which you will 
-use in the pipeline in the next section. 
+You can now create a secret to securely store the production cluster credentials (auth token) which you will
+use in the pipeline in the next section.
 
 CAUTION: Replace `PROD_TOKEN` with the auth token from the previous command.
 
@@ -75,8 +75,8 @@ oc label secret prod-credentials credential.sync.jenkins.openshift.io=true
 ----
 
 
-You can now login back into the development OpenShift cluster. All interactions with the production cluster in 
-the following sections will take place via the pipeline. 
+You can now login back into the development OpenShift cluster. All interactions with the production cluster in
+the following sections will take place via the pipeline.
 
 CAUTION: In the following url(s), replace `GUID` with the guid provided to you.
 
@@ -88,10 +88,10 @@ oc login {{OPENSHIFT_URL}}
 
 #### Define the PROD Pipeline
 
-Although you can create the PROD environment on the production OpenShift cluster manually, but 
-due to our obsession with automation you will create a pipeline that creates the PROD environment. 
-This will allow you to recreate the PROD environment whenever that is needed or recreated PROD like 
-environments on other clusters for test and debug purposes. 
+Although you can create the PROD environment on the production OpenShift cluster manually, but
+due to our obsession with automation you will create a pipeline that creates the PROD environment.
+This will allow you to recreate the PROD environment whenever that is needed or recreated PROD like
+environments on other clusters for test and debug purposes.
 
 
 Change to working directory to the `cd-infra` repository working copy:
@@ -151,7 +151,7 @@ pipeline {
           }
         }
       }
-    }    
+    }
     stage('Promote Images to PROD') {
       steps {
         script {
@@ -180,7 +180,7 @@ pipeline {
           }
         }
       }
-    }    
+    }
   }
 }
 EOF
@@ -194,22 +194,22 @@ Here is what happens in the above pipeline:
 * *Promote Images to PROD* stage: promotes the select image versions from the development cluster to the production cluster
 * *Deploy to Prod* stage: deploys the selected versions in the production project on the production cluster
 
-In order to promote images from the development OpenShift cluster to the production OpenShift cluster, the pipeline 
-needs to push the selected versions of the container images for Catalog and Web from the development cluster to the 
-production cluster. 
+In order to promote images from the development OpenShift cluster to the production OpenShift cluster, the pipeline
+needs to push the selected versions of the container images for Catalog and Web from the development cluster to the
+production cluster.
 
-Do you know how do that? You might be familiar with the `docker tag` and `docker push` commands which allow interaction 
-with docker image registries and can push images from one registry to the another. Although we just want to move container images 
-around, `docker` command requires access to a Docker Daemon running. In other words, you should have Docker 
-installed where you want to use the `docker` command. 
+Do you know how do that? You might be familiar with the `docker tag` and `docker push` commands which allow interaction
+with docker image registries and can push images from one registry to the another. Although we just want to move container images
+around, `docker` command requires access to a Docker Daemon running. In other words, you should have Docker
+installed where you want to use the `docker` command.
 
-The pipeline however runs on a Jenkins slave pod and it doesn't necessarily have access to a Docker Daemon running. You 
-might think that of course there is a Docker Daemon running since the Jenkins pod itself is running as a container, and 
-we'd say "you are right!". However containers do not necessarily have access to the underlying host and we don't like 
-hacks in order to give them access to the underlying hosts. 
+The pipeline however runs on a Jenkins slave pod and it doesn't necessarily have access to a Docker Daemon running. You
+might think that of course there is a Docker Daemon running since the Jenkins pod itself is running as a container, and
+we'd say "you are right!". However containers do not necessarily have access to the underlying host and we don't like
+hacks in order to give them access to the underlying hosts.
 
-What you can do instead is to use a handy tool called `skopeo` which can inspect and copy OCI-compliant (Open Container Initiative) 
-between compliant image registries without the need for a Docker Daemon. 
+What you can do instead is to use a handy tool called `skopeo` which can inspect and copy OCI-compliant (Open Container Initiative)
+between compliant image registries without the need for a Docker Daemon.
 
 
 All that you need to move a container image from one registry to the other is to download `skopeo` and run this command:
@@ -219,7 +219,7 @@ All that you need to move a container image from one registry to the other is to
 skopeo copy docker://source-registry/myimage docker://dest-registry:myimage --src-creds user:pwd --dest-creds user:pwd
 ----
 
-Neat right? You can see why we chose to use `skopeo` over `docker` for promoting Catalog and Web container images to the 
+Neat right? You can see why we chose to use `skopeo` over `docker` for promoting Catalog and Web container images to the
 product cluster.
 
 Add the Jenkinsfile to `cd-infra` git repository:
@@ -232,10 +232,10 @@ git push origin master
 ----
 
 
-### Create the PROD OpenShift Pipeline 
+### Create the PROD OpenShift Pipeline
 
-Go to the OpenShift web console (development cluster) abd the *CI/CD* project. Click on 
-*Add to Project* > *Import YAML/JSON* and paste the following YAML file to create a pipeline 
+Go to the OpenShift web console (development cluster) abd the *CI/CD* project. Click on
+*Add to Project* > *Import YAML/JSON* and paste the following YAML file to create a pipeline
 that uses the `Jenkinsfile.create-prod` from the `cd-infra` git repository:
 
 CAUTION: In the following url(s), replace `GUID` with the guid provided to you.
@@ -251,7 +251,7 @@ spec:
   source:
     git:
       ref: master
-      uri: "{{GIT_HOSTNAME}}/{{GIT_USER}}/cd-infra.git"
+      uri: "http://{{GIT_HOSTNAME}}/{{GIT_USER}}/cd-infra.git"
     type: Git
   strategy:
     jenkinsPipelineStrategy:
@@ -274,24 +274,24 @@ spec:
     - type: ConfigChange
 ----
 
-Click on *Create*. 
+Click on *Create*.
 
-Go to *Builds* > *Pipelines* and click on *Start Pipeline* near the *coolstore-create-prod* pipeline. The 
+Go to *Builds* > *Pipelines* and click on *Start Pipeline* near the *coolstore-create-prod* pipeline. The
 pipeline starts but pauses to ask for some information before it can create the production environment.
 
-Click on *Input* which will take you to Jenkins. Jenkins authentication is integrated with OpenShift (via OAuth) and therefore 
+Click on *Input* which will take you to Jenkins. Jenkins authentication is integrated with OpenShift (via OAuth) and therefore
 you can use your OpenShift credentials to log into Jenkins.
 
 * Username: `{{OPENSHIFT_USER}}`
 * Password: `{{OPENSHIFT_PASSWORD}}`
 
-Confirm that you allow Jenkins to get your information from OpenShift. 
+Confirm that you allow Jenkins to get your information from OpenShift.
 
 
-Choose the latest version of the Catalog and Web container images from the dropdown lists and click *Deploy* so that 
+Choose the latest version of the Catalog and Web container images from the dropdown lists and click *Deploy* so that
 the pipeline deployes the selected versions into production.
 
-As the pipeline progresses, log into the production OpenShift Web Console and verify that the CoolStore application is 
+As the pipeline progresses, log into the production OpenShift Web Console and verify that the CoolStore application is
 deployed into production.
 
 CAUTION: In the following url(s), replace `GUID` with the guid provided to you.
@@ -300,5 +300,5 @@ CAUTION: In the following url(s), replace `GUID` with the guid provided to you.
 * Production OpenShift User: `{{PROD_USER}}`
 * Production OpenShift Password: `{{PROD_PASSWORD}}`
 
-If you are curious, check out *Application* > *Deployments* and verify that the image versions deployed matches the 
+If you are curious, check out *Application* > *Deployments* and verify that the image versions deployed matches the
 ones you selected.
