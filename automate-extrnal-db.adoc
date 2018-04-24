@@ -43,20 +43,15 @@ An APB spec file (apb.yml) must be edited for your specific application.
 
 The following are the actions for an APB. At a minimum, an APB must implement the provision and deprovision actions:
 
-*provision.yml*
-Playbook called to handle installing application to the cluster.
+provision.yml:: Playbook called to handle installing application to the cluster.
 
-*deprovision.yml*
-Playbook called to handle uninstalling.
+deprovision.yml:: Playbook called to handle uninstalling.
 
-*bind.yml*
-Playbook to grant access to another service to use this service, such as generating credentials.
+bind.yml:: Playbook to grant access to another service to use this service, such as generating credentials.
 
-*unbind.yml*
-Playbook to revoke access to this service.
+unbind.yml:: Playbook to revoke access to this service.
 
-*test.yml*
-(Optional) Playbook to test that the APB is vaild.
+test.yml:: (Optional) Playbook to test that the APB is vaild.
 
 The required named playbooks correspond to methods defined by the OSB API. For example, when the OAB needs to provision an APB it will execute *provision.yml*.
 
@@ -87,8 +82,9 @@ image::devops-externaldb-apb-deploy.png[Deploying APB diagram 1]
 
 . The OAB returns the discovered list to the service catalog, to be viewed by the user in the OpenShift Container Platform UI.
 
-image::devops-externaldb-apb-deploy.png[Deploying APB diagram 2]
+image::devops-externaldb-apb-deploy-2.png[Deploying APB diagram 2]
 
+[start=5]
 . The user now chooses an APB from the discovered list provided by the service catalog.
 
 . The service catalog communicates with the OAB that the user has requested use of the chosen APB.
