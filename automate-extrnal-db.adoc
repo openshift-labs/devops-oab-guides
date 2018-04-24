@@ -165,6 +165,8 @@ oc login -u {{ OPENSHIFT_USER }}
 Go to the OpenShift Web Console and inside the STAGE project and in the _Search Catalog_ field search for
 _Digital Ocean_  and click on **Digital Ocean MySQL* to provision it. Ansible playbooks inside our APB are using Digital Ocean Ansible module and also REST API. Both of those need Digital Ocean API key for authentication. Cluster admin can add secrets that will be injected to Ansible Playbook Bundle execution pods. We have already created secret with API key for you and configured it to be used in the provisioning.
 
+If catalog item is not visible refresh Web Console or logout and log back in.
+
 image::devops-externaldb-search-catalog.png[Search catalog for APB]
 
 Once correct catalog item is selected you will be displayed general information about catalog item.
@@ -183,9 +185,9 @@ When we provisioned Jenkins from Service Catalog we didn't create secret that ca
 
 image::devops-externaldb-choose-bind-creds.png[Create secret for binding]
 
-All done, next click _Continue to the project overview_. Add the and of the overview page you will se MySQL Digital Ocean services and its state. Provision and binding will take from 5-10 minutes.
+All done, next click _Continue to the project overview_. Add the and of the overview page you will se MySQL Digital Ocean services and its state under Provisioned Services. Provision and binding will take from 5-10 minutes.
 
-IMAGE NEEDED
+image::devops-externaldb-provisioning-ongoing.png[Service provisioning]
 
 Provisioning is executed in a pod in namespace which is created by Openshift Ansible Service Broker. This namespace and also pod have a random name, so we need to use labels to find correct project and pod. By default these provisioning and deprovisioning namesapaces are removed automatically. You can change this behaviour from Ansible Service Broker configuration.
 
