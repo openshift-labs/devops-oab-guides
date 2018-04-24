@@ -4,23 +4,23 @@ Create an APB project using the APB CLI:
 
 [source,shell,role=copypaste]
 ```
-$ cd ~
-$ apb init mysql-digital-ocean-apb --bindable
+cd ~
+apb init mysql-digital-ocean-apb --bindable
 ```
 
 Take a look inside the `mysql-digital-ocean-apb` directory and review `apb.yml`
 
 [source,shell,role=copypaste]
 ```
-$ cd mysql-digital-ocean-apb
-$ cat apb.yml
+cd mysql-digital-ocean-apb
+cat apb.yml
 ```
 
 Define the parameters for the MySQL APB by replacing it with the following:
 
 [source,shell,role=copypaste]
 ```
-$ cat <<'EOF' > apb.yml
+cat <<'EOF' > apb.yml
 _params: &_params
   - name: service_name
     title: Database service name
@@ -105,7 +105,7 @@ on Ansible Galaxy:
 
 [source,shell,role=copypaste]
 ```
-$ \cp -rf ~/support/mysql-digital-ocean-apb/{playbooks,roles} .     # \ is to disable the 'cp -i' alias
+\cp -rf ~/support/mysql-digital-ocean-apb/{playbooks,roles} .     # \ is to disable the 'cp -i' alias
 ```
 
 Explain the APB process (build docker image, push ,etc). Although APB CLI generates a Dockerfile since
@@ -113,7 +113,7 @@ you need some extra python libraries, replace it with this one:
 
 [source,shell,role=copypaste]
 ```
-$ cat <<'EOF' > Dockerfile
+cat <<'EOF' > Dockerfile
 FROM openshift3/apb-base
 
 LABEL "com.redhat.apb.spec"=\
@@ -135,7 +135,7 @@ Now you are done with authoring the APB. Prepare it for distribution:
 
 [source,shell,role=copypaste]
 ```
-$ apb prepare
+apb prepare
 ```
 `
 Review Dockerfile and note LABEL
@@ -144,22 +144,22 @@ Build the APB container image:
 
 [source,shell,role=copypaste]
 ```
-$ sudo apb build
+sudo apb build
 ```
 
 Now you should add it to the service catalog. You have to log in as admin first since this is admin thing to do:
 
 [source,shell,role=copypaste]
 ```
-$ oc login -u admin -p openshift
-$ sudo apb push --registry-route {{ OPENSHIFT_REGISTRY }}
+oc login -u admin -p openshift
+sudo apb push --registry-route {{ OPENSHIFT_REGISTRY }}
 ```
 
 Log back in as your own user for rest of the labs
 
 [source,shell,role=copypaste]
 ```
-$ oc login -u {{ OPENSHIFT_USER }}
+oc login -u {{ OPENSHIFT_USER }}
 ```
 
 Go to the OpenShift Web Console and inside the STAGE project and in the _Search Catalog_ field search for
@@ -202,7 +202,7 @@ Log back in as your own user for rest of the labs
 
 [source,shell,role=copypaste]
 ```
-$ oc login -u {{ OPENSHIFT_USER }}
+oc login -u {{ OPENSHIFT_USER }}
 ```
 
 You can check is everything done by expanding service in STAGE project _Overview_ page
@@ -211,7 +211,7 @@ image::devops-externaldb-open-service.png[Expand service view]
 
 When your secret is created for you, you should have options _Delete_ and _View Secret_. If those are not present, provisioning and binding is not ready yet. Select _View Secret_ to display information about secret.
 
-image::devops-externaldb-view_secret.png[View secret]
+image::devops-externaldb-view-secret.png[View secret]
 
 From secret view you can add this secret to any application you have in your project. Select _Add to Application_ to continue.
 
@@ -227,7 +227,7 @@ Create new configmap
 
 [source,shell,role=copypaste]
 ```
-$ cat <<'EOF' > /tmp/application.properties
+cat <<'EOF' > /tmp/application.properties
 spring.datasource.url=jdbc:mysql://${APB_DB_SERVICE_NAME}:3306/${APB_DB_NAME}?useSSL=false
 spring.datasource.driver-class-name=com.mysql.jdbc.Driver
 spring.datasource.username=${APB_DB_USER}
@@ -240,15 +240,15 @@ Delete old configmap
 
 [source,shell,role=copypaste]
 ```
-$ oc delete configmap catalog -n stage
+oc delete configmap catalog -n stage
 ```
 
 Create new configmap and redeploy catalog
 
 [source,shell,role=copypaste]
 ```
-$ oc create configmap catalog --from-file=/tmp/application.properties -n stage
-$ oc rollout latest catalog -n stage
+oc create configmap catalog --from-file=/tmp/application.properties -n stage
+oc rollout latest catalog -n stage
 ```
 
 Now you have connected your application with external database running in Digital Ocean.
