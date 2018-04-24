@@ -4,6 +4,7 @@ Create an APB project using the APB CLI:
 
 [source,shell,role=copypaste]
 ```
+$ cd ~
 $ apb init mysql-digital-ocean-apb --bindable
 ```
 
@@ -44,7 +45,7 @@ _params: &_params
     pattern: "^[a-zA-Z0-9_]*[a-zA-Z_]+[a-zA-Z0-9_]*$"
     required: true
   - name: mysql_user
-    title: Database username 
+    title: Database username
     description: Username that will be used to connect to MySQL
     type: string
     default: admin
@@ -52,7 +53,7 @@ _params: &_params
     required: true
   - name: mysql_password
     title: Database user password
-    description: Password to connect to MySQL (generated if blank)
+    description: Password to connect to MySQL
     type: string
     required: true
     display_type: password
@@ -99,7 +100,7 @@ EOF
 
 Explain how playbooks work in APBs and review the existing playbooks in `playbooks/`
 
-Copy the existing roles and playbooks to use the Digital Oceal ansible modules avaialble 
+Copy the existing roles and playbooks to use the Digital Oceal ansible modules avaialble
 on Ansible Galaxy:
 
 [source,shell,role=copypaste]
@@ -115,14 +116,18 @@ you need some extra python libraries, replace it with this one:
 $ cat <<'EOF' > Dockerfile
 FROM openshift3/apb-base
 
-RUN yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-$(rpm -E '%{rhel}').noarch.rpm && yum -y update && yum -y install python git python-pip && yum clean all
-RUN pip install --upgrade pip && pip install 'dopy>=0.3.7,<=0.3.7'
+LABEL "com.redhat.apb.spec"=\
+
+RUN yum-config-manager --disable rhel-7-server-htb-rpms && yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm && yum -y update && yum -y install python git python-pip python-requests python-setuptools python-wheel && yum clean all
+RUN pip install --upgrade pip --user apb --cache-dir /tmp && pip install --user apb 'dopy>=0.3.7,<=0.3.7' --cache-dir /tmp
 RUN chown -R apb:0 /opt/apb && chmod -R g=u /opt/apb /etc/passwd
+
 COPY playbooks /opt/apb/actions
 COPY roles /opt/apb/actions/roles
 RUN chmod -R g=u /opt/{ansible,apb}
 USER apb
 ENV ANSIBLE_HOST_KEY_CHECKING false
+
 EOF
 ```
 
@@ -139,7 +144,7 @@ Build the APB container image:
 
 [source,shell,role=copypaste]
 ```
-$ apb build
+$ sudo apb build
 ```
 
 Now you should add it to the service catalog. You have to log in as admin first since this is admin thing to do:
@@ -147,7 +152,7 @@ Now you should add it to the service catalog. You have to log in as admin first 
 [source,shell,role=copypaste]
 ```
 $ oc login -u admin -p openshift
-$ apb push --registry-route {{ OPENSHIFT_REGISTRY }}
+$ sudo apb push --registry-route {{ OPENSHIFT_REGISTRY }}
 ```
 
 Log back in as your own user for rest of the labs
@@ -157,8 +162,93 @@ Log back in as your own user for rest of the labs
 $ oc login -u {{ OPENSHIFT_USER }}
 ```
 
-Go to the OpenShift Web Console and inside the STAGE project and in the _Search Catalog_ field search for 
-_Digital Ocean_  and click on **Digital Ocean MySQL* to provision it. We hav already added a secret to keep Digital Ocean API authentications. 
-You will read what that means in the next paragraph!
+Go to the OpenShift Web Console and inside the STAGE project and in the _Search Catalog_ field search for
+_Digital Ocean_  and click on **Digital Ocean MySQL* to provision it. Ansible playbooks inside our APB are using Digital Ocean Ansible module and also REST API. Both of those need Digital Ocean API key for authentication. Cluster admin can add secrets that will be injected to Ansible Playbook Bundle execution pods. We have already created secret with API key for you and configured it to be used in the provisioning.
 
-Connect it with your app now.
+image::devops-externaldb-search-catalog.png[Search catalog for APB]
+
+Once correct catalog item is selected you will be displayed general information about catalog item.
+
+image::devops-externaldb-apb-general-info.png[General info about APB]
+
+Service Broker API gives you possibility to have different plans in your Service Catalog items. This Ansible Playbook Bundle item has three plans 512mb, 2gb and 4gb. Default plan _512mb_ is already selected for you.
+
+image::devops-externaldb-select-plan.png[Select plan]
+
+All Service Catalog items accept parameters which you can use to tune your services to be provisioned. Different plans can have different parameters, but in this case parameters are the same for all plans. Parameters are defined in apb.yml file during APB creation process. All parameters is this catalog item are mandatory. You can choose to which Digital Ocean region you want your database to be provisioned. Default sfo1 is close so we'll use that. After parameters are set, scroll down and select _Next_
+
+image::devops-externaldb-configuration.png[Configure your service]
+
+When we provisioned Jenkins from Service Catalog we didn't create secret that can be bind to other applications in the projects. This time we need that secret so that catalog application knows how to connect to external database. We will link created secrets to catalog application later. Select _Create_ once you have changed default selection.
+
+image::devops-externaldb-choose-bind-creds.png[Create secret for binding]
+
+All done, next click _Continue to the project overview_. Add the and of the overview page you will se MySQL Digital Ocean services and its state. Provision and binding will take from 5-10 minutes.
+
+IMAGE NEEDED
+
+Provisioning is executed in a pod in namespace which is created by Openshift Ansible Service Broker. This namespace and also pod have a random name, so we need to use labels to find correct project and pod. By default these provisioning and deprovisioning namesapaces are removed automatically. You can change this behaviour from Ansible Service Broker configuration.
+
+Execute following commands to find correct namespace and then read pod logs. You need to pretty fast.
+
+[source,shell,role=copypaste]
+```
+$ oc login -u admin -p openshift
+$ oc project $(oc get project -l apb-fqname=localregistry-mysql-digital-ocean-apb --no-headers=true | awk '{print $1}')
+$ oc logs -f $(oc get po -l apb-fqname=localregistry-mysql-digital-ocean-apb --no-headers=true | awk '{print $1}')
+```
+
+Log back in as your own user for rest of the labs
+
+[source,shell,role=copypaste]
+```
+$ oc login -u {{ OPENSHIFT_USER }}
+```
+
+You can check is everything done by expanding service in STAGE project _Overview_ page
+
+image::devops-externaldb-open-service.png[Expand service view]
+
+When your secret is created for you, you should have options _Delete_ and _View Secret_. If those are not present, provisioning and binding is not ready yet. Select _View Secret_ to display information about secret.
+
+image::devops-externaldb-view_secret.png[View secret]
+
+From secret view you can add this secret to any application you have in your project. Select _Add to Application_ to continue.
+
+image::devops-externaldb-add-to-application.png[Add secret to application]
+
+Select _catalog_ and and _APB__ as environment variable prefix. By using prefix you will not accidentally overwrite some environment variables that you may already have. Select _Save_ when done.
+
+image::devops-externaldb-select-application.png[Select application and give env prefix]
+
+Now that all relevant information is bound to your application we need to start using those to get connection to external database. Catalog services uses configmap named catalog to configure connection to database. We will delete old configmap and create new with environment variables from APB.
+
+Create new configmap
+
+[source,shell,role=copypaste]
+```
+$ cat <<'EOF' > /tmp/application.properties
+spring.datasource.url=jdbc:mysql://${APB_DB_SERVICE_NAME}:3306/${APB_DB_NAME}?useSSL=false
+spring.datasource.driver-class-name=com.mysql.jdbc.Driver
+spring.datasource.username=${APB_DB_USER}
+spring.datasource.password=${APB_DB_PASSWORD}
+spring.jpa.hibernate.ddl-auto=create
+EOF
+```
+
+Delete old configmap
+
+[source,shell,role=copypaste]
+```
+$ oc delete configmap catalog -n stage
+```
+
+Create new configmap and redeploy catalog
+
+[source,shell,role=copypaste]
+```
+$ oc create configmap catalog --from-file=/tmp/application.properties -n stage
+$ oc rollout latest catalog -n stage
+```
+
+Now you have connected your application with external database running in Digital Ocean.
