@@ -167,3 +167,29 @@ _Digital Ocean_  and click on **Digital Ocean MySQL* to provision it. We hav alr
 You will read what that means in the next paragraph!
 
 Connect it with your app now.
+
+[source,shell,role=copypaste]
+```
+$ cat <<'EOF' > /tmp/application.properties
+spring.datasource.url=jdbc:mysql://${APB_DB_SERVICE_NAME}:3306/${APB_DB_NAME}?useSSL=false
+spring.datasource.driver-class-name=com.mysql.jdbc.Driver
+spring.datasource.username=${APB_DB_USER}
+spring.datasource.password=${APB_DB_PASSWORD}
+spring.jpa.hibernate.ddl-auto=create
+EOF
+```
+
+Delete old configmap
+
+[source,shell,role=copypaste]
+```
+$ oc delete configmap catalog -n stage
+```
+
+Create new configmap and redeploy catalog
+
+[source,shell,role=copypaste]
+```
+$ oc create configmap catalog --from-file=/tmp/application.properties -n stage
+$ oc rollout latest catalog -n stage
+```
