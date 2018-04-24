@@ -162,7 +162,7 @@ pipeline {
             def destWebRef = "${env.PROD_REGISTRY}/${prodProject}/web-ui:${webReleaseTag}"
             def srcToken = readFile "/run/secrets/kubernetes.io/serviceaccount/token"
             sh "skopeo copy docker://${srcCatalogRef} docker://${destCatalogRef} --src-creds openshift:${srcToken} --dest-creds openshift:${prodToken} --src-tls-verify=false --dest-tls-verify=false"
-            sh "skopeo copy docker://${srcWebRef} docker://${destWebRef} --src-creds openshift:${srcToken} --dest-creds openshift:${prodToken} --src-tls-verify=false --dest-tls-verify=false"
+            sh "skopeo copy docker://${srcWebRef} docker://${destWebRef} --dest-creds openshift:${prodToken} --dest-tls-verify=false"
           }
         }
       }
