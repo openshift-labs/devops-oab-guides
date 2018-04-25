@@ -66,15 +66,6 @@ oc whoami -t
 You can now create a secret to securely store the production cluster credentials (auth token) which you will
 use in the pipeline in the next section.
 
-CAUTION: Replace `PROD_TOKEN` with the auth token from the previous command.
-
-[source,shell,role=copypaste]
-----
-oc create secret generic prod-credentials --from-literal=username={{PROD_USERNAME}} --from-literal=password=PROD_TOKEN
-oc label secret prod-credentials credential.sync.jenkins.openshift.io=true
-----
-
-
 You can now login back into the development OpenShift cluster. All interactions with the production cluster in
 the following sections will take place via the pipeline.
 
@@ -85,6 +76,13 @@ CAUTION: In the following url(s), replace `GUID` with the guid provided to you.
 oc login {{OPENSHIFT_URL}}
 ----
 
+CAUTION: Replace `PROD_TOKEN` with the auth token from the _oc whoami_ command.
+
+[source,shell,role=copypaste]
+----
+oc create secret generic prod-credentials --from-literal=username={{PROD_USERNAME}} --from-literal=password=PROD_TOKEN -n cicd
+oc label secret prod-credentials credential.sync.jenkins.openshift.io=true -n cicd
+----
 
 #### Define the PROD Pipeline
 
@@ -162,7 +160,7 @@ pipeline {
             def destWebRef = "${env.PROD_REGISTRY}/${prodProject}/web-ui:${webReleaseTag}"
             def srcToken = readFile "/run/secrets/kubernetes.io/serviceaccount/token"
             sh "skopeo copy docker://${srcCatalogRef} docker://${destCatalogRef} --src-creds openshift:${srcToken} --dest-creds openshift:${prodToken} --src-tls-verify=false --dest-tls-verify=false"
-            sh "skopeo copy docker://${srcWebRef} docker://${destWebRef} --dest-creds openshift:${prodToken} --dest-tls-verify=false"
+            sh "skopeo copy docker://${srcWebRef} docker://${destWebRef} --src-creds openshift:${srcToken} --dest-creds openshift:${prodToken} --src-tls-verify=false --dest-tls-verify=false"
           }
         }
       }
