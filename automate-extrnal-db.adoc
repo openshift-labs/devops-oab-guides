@@ -1,103 +1,56 @@
 ## Provisioning External Databases
 
-In previous lab we created an pipeline to deploy our catalog service and Web UI to *Coolstore STAGE* project. It uses not MySQL database provisioned from standard Openshift templates. In this lab we will provision external database from Digital Ocean with Ansible Playbook Bundle (APB) and link that to Coolstore catalog service.
+In previous lab we created an pipeline to deploy our Catalog service and Web UI to *CoolStore STAGE* project. The Catalog 
+service uses a MySQL database which is deployed on in a pod running in the same project. You can click on the **Catalog** 
+in the left sidebar and then on **Databases** and **MySQL** to see the MySQL images that are provided by OpenShift which 
+are all deployed as containers. 
 
-You will be executing following steps
+image::devops-externaldb-mysql.png[MySQL on OpenShift]
 
-* Create, Build and Push APB to Openshift DEV Cluster
-* Provision external database with APB
-* Link external database to catalog service.
+Many organizations have invested in sophisticated database solutions that run on their own 
+infrastructure on virtual machines or bare-metal servers and want 
+to continue to use their existing database infrastructure with their containerizes applications.
+
+In this lab you will provision an external MySQL database on DigtalOcean cloud servers and connect it to 
+the Catalog service. Furthermore, you will automate this process using Ansible and Ansible Playbook Bundles (APB). 
+
+https://www.ansible.com/[Ansible] is a radically simple IT automation system that handles configuration-management, 
+application deployment, cloud provisioning, ad-hoc task-execution, etc on a wide verity of infrastructure like hyporvisors, 
+cloud-providers, load-balancers and more. Ansible is already being used in many organizations to automate infrastructure 
+tasks.  
+
+{{OPENSHIFT_DOCS_BASE}}/apb_devel/index.html[Ansible Playbook Bundles (APB)] is a lightweight provisioning mechanism in OpenShift 
+that allows using Ansible playbooks for automation particularly tasks that need to be performed on the infrastructure outside 
+OpenShift.
+
+You will learn more APBs in the next section.
+
 
 ### Introduction to Ansible Playbook Bundles
 
-An APB is a lightweight application definition that borrows several concepts from the Nulecule and Atomicapp projects, namely the concept of a short-lived container with the sole purpose of orchestrating the deployment of the intended application. For the case of APBs, this short-lived container is the APB itself: a container with an Ansible runtime environment plus any files required to assist in orchestration, such as playbooks, roles, and extra dependencies.
+An Ansible Playbook Bundle (APB) is a lightweight application definition (meta-container). They are used to define and 
+deploy complex groups of applications, deployment configs, deployments, and services to an OpenShift cluster running 
+the {{OPENSHIFT_DOCS_BASE}}/architecture/service_catalog/ansible_service_broker.html#arch-ansible-service-broker[OpenShift Ansible Broker (OAB)]. 
+APBs offer more power and simple configuration by leveraging the power of Ansible. 
 
-The OpenShift Ansible broker (OAB) is an implementation of the Open Service Broker (OSB) API that manages applications defined by APBs. The OAB is supported and deployed by default starting in OpenShift Container Platform 3.7.
+The {{OPENSHIFT_DOCS_BASE}}/architecture/service_catalog/ansible_service_broker.html#arch-ansible-service-broker[Ansible Service Broker] is 
+an implementation of the https://www.openservicebrokerapi.org[Open Service Broker API] for exposing and managing applications defined by APBs.
 
-Specification of an APB is intended to be lightweight, consisting of several named playbooks and a metadata file to capture information such as parameters to pass into the application.
+Specification of an APB is intended to be lightweight, consisting of several named playbooks and a metadata file to capture information 
+such as parameters to pass into the application.
 
-### APB workflow
+The workflow for building an APB is consist of the following steps:
 
-Workflow
-The APB workflow is broken up into the following steps:
+. Prepare APB skeleton
+. Create APB spec file
+. Create action Ansible playbooks (provision, deprovision, bind, unbind)
+. Build APB image
+. Deploy APB image and add to service catalog
 
-. Preparation
-.. APB initialization
-.. APB spec file
-.. Actions (provision, deprovision, bind, unbind)
-. Build
-. Deploy
+The {{OPENSHIFT_DOCS_BASE}}/apb_devel/cli_tooling.html[apb CLI tool] helps with the above steps and you will be using 
+it throughout this lab to build and deploy your APB.
 
-#### Preparation
-You must prepare your APB’s directory structure and spec file before you can build and deploy it. The https://docs.openshift.com/container-platform/3.9/apb_devel/writing/getting_started.html#apb-devel-writing-getting-started[Getting Started] topic provides a step by step tutorial on creating your first APB, while the following sections briefly cover this workflow.
-
-#### APB initialization
-
-The apb init command creates the required skeleton directory structure and a few required files (for example, the apb.yml spec file) for the APB.
-
-#### APB Spec file
-
-An APB spec file (apb.yml) must be edited for your specific application.
-
-#### Actions
-
-The following are the actions for an APB. At a minimum, an APB must implement the provision and deprovision actions:
-
-provision.yml:: Playbook called to handle installing application to the cluster.
-
-deprovision.yml:: Playbook called to handle uninstalling.
-
-bind.yml:: Playbook to grant access to another service to use this service, such as generating credentials.
-
-unbind.yml:: Playbook to revoke access to this service.
-
-test.yml:: (Optional) Playbook to test that the APB is vaild.
-
-The required named playbooks correspond to methods defined by the OSB API. For example, when the OAB needs to provision an APB it will execute *provision.yml*.
-
-After the required named playbooks have been generated, the files can be used directly to test management of the application. A developer may want to work with this directory of files, make tweaks, run, repeat until they are happy with the behavior. They can test the playbooks by invoking Ansible directly with the playbook and any required variables.
-
-#### Build
-
-The build step is responsible for building a container image from the named playbooks for distribution. Packaging combines a base image containing an Ansible runtime with Ansible artifacts and any dependencies required to run the playbooks.
-
-The result is a container image with an *ENTRYPOINT* set to take in several arguments, one of which is the method to execute, such as provision and deprovision.
-
-#### Deploy
-
-Deploying an APB means invoking the container and passing in the name of the playbook to execute along with any required variables. It is possible to invoke the APB directly without going through the OAB. Each APB is packaged so its ENTRYPOINT will invoke Ansible when run. The container is intended to be short-lived, coming up to execute the Ansible playbook for managing the application then exiting.
-
-In a typical APB deploy, the APB container will provision an application by running the provision.yml playbook, which executes an Ansible role. The role is responsible for creating the OpenShift Container Platform resources, perhaps through calling oc create commands or leveraging Ansible modules. The end result is that the APB runs Ansible to talk to OpenShift Container Platform to orchestrate the provisioning of the intended application.
-
-The following diagrams illustrate this deployment flow in two phases: a user discovering a list of available APBs and then requesting their chosen APB be provisioned to their project:
-
-image::devops-externaldb-apb-deploy.png[Deploying APB diagram 1]
-
-
-. An OpenShift Container Platform user is interested in provisioning a service into their project, so they interact with the service catalog by accessing the OpenShift Container Platform UI (web console or CLI) to discover any APBs that are already available.
-
-. The service catalog requests a list of APBs from the OAB to show the user.
-
-. The OAB searches all configured container registries (the cluster’s OpenShift Container Registry or any other remote registry) for any APBs (images with a specific label, for example LABEL=apb-1.0).
-
-. The OAB returns the discovered list to the service catalog, to be viewed by the user in the OpenShift Container Platform UI.
-
-image::devops-externaldb-apb-deploy-2.png[Deploying APB diagram 2]
-
-[start=5]
-. The user now chooses an APB from the discovered list provided by the service catalog.
-
-. The service catalog communicates with the OAB that the user has requested use of the chosen APB.
-
-. The OAB initiates the image pull from the appropriate container registry.
-
-. After the image is pulled, the OAB defers the logic for orchestrating the application to the APB. The service is deployed by running the APB container with a few parameters. To do so, the following command is issued against the OpenShift Container Platform cluster in a temporary namespace:
-
-. As a result, the user views via the OpenShift Container Platform UI that their requested service has been successfully provisioned in their project.
-
-### Creating our own APB
-
-Create an APB project using the APB CLI:
+The first step is to prepare your APB’s directory structure and spec file before you can build and deploy it. Create an APB project using the APB CLI:
 
 [source,shell,role=copypaste]
 ```
@@ -105,7 +58,31 @@ cd ~
 apb init mysql-digital-ocean-apb --bindable
 ```
 
-Take a look inside the `mysql-digital-ocean-apb` directory and review `apb.yml`
+NOTE: The `mysql-digital-ocean-apb` is an arbitrary name that we have chosen 
+in this lab as the name of the APB that will provision a MySQL database on 
+DigtalOcean.
+
+The `apb init`` command creates the required skeleton directory structure and a few required files (for example, the apb.yml spec file) for the APB.
+
+```
+mysql-digital-ocean-apb/
+  ├── Dockerfile
+  ├── Makefile
+  ├── apb.yml
+  └── roles/
+  │   └── bind-mysql-digital-ocean-apb/
+  │   └── unbind-mysql-digital-ocean-apb/
+  │   └── provision-mysql-digital-ocean-apb/
+  │   └── deprovision-digital-ocean-apb/
+  └── playbooks/
+      └── provision.yml
+      └── deprovision.yml
+      └── bind.yml
+      └── unbind.yml
+```
+
+Take a look at the APB spec which defines the outline of the APB and metadata like name, version and parameters such as a database name 
+that you want users to enter when ordering the APB in order to customize its behavior. 
 
 [source,shell,role=copypaste]
 ```
@@ -113,7 +90,8 @@ cd mysql-digital-ocean-apb
 cat apb.yml
 ```
 
-Define the parameters for the MySQL APB by replacing it with the following:
+Run the following to replace `apb.yml` in order to add all the parameters such as database name, DigtalOcean region, 
+etc as well as define database server sizes (small, medium and large):
 
 [source,shell,role=copypaste]
 ```
@@ -156,15 +134,15 @@ _params: &_params
     display_type: password
 version: 1.0
 name: mysql-digital-ocean-apb
-description: MySQL database from Digital Ocean
+description: MySQL database from DigtalOcean
 bindable: true
 async: optional
 tags:
 - database
 - mysql
 metadata:
-  displayName: "Digital Ocean MySQL (APB)"
-  longDescription: "MySQL 5.7 running on CentOs 7.4 in Digital Ocean"
+  displayName: "DigtalOcean MySQL (APB)"
+  longDescription: "MySQL 5.7 running on CentOs 7.4 in DigtalOcean"
   console.openshift.io/iconClass: icon-mysql-database
   providerDisplayName: "Red Hat, Inc."
 plans:
@@ -173,40 +151,75 @@ plans:
     free: true
     metadata:
       displayName: Default (512MB)
-      longDescription: This plan provides small (512MB) droplet from Digital Ocean with MySQL
+      longDescription: This plan provides small (512MB) droplet from DigtalOcean with MySQL
       cost: $0.00
     parameters: *_params
   - name: 2gb
-    description: Small droplet with MySQL
+    description: Medium droplet with MySQL
     free: true
     metadata:
       displayName: Medium (2GB)
-      longDescription: This plan provides medium (2GB) droplet from Digital Ocean with MySQL
+      longDescription: This plan provides medium (2GB) droplet from DigtalOcean with MySQL
       cost: $10.00 monthly
     parameters: *_params
   - name: 4gb
-    description: Small droplet with MySQL
+    description: Large droplet with MySQL
     free: true
     metadata:
       displayName: Large (4GB)
-      longDescription: This plan provides large (4GB) droplet from Digital Ocean with MySQL
+      longDescription: This plan provides large (4GB) droplet from DigtalOcean with MySQL
       cost: $40.00 monthly
     parameters: *_params
 EOF
 ```
 
-Explain how playbooks work in APBs and review the existing playbooks in `playbooks/`
+An action for an APB is the command that the APB is run with and is defined by the https://www.openservicebrokerapi.org[Open Service Broker API]. The standard actions are:
 
-Copy the existing roles and playbooks to use the Digital Oceal ansible modules avaialble
-on Ansible Galaxy:
+* **provision:** create new resources e.g. a database
+* **deprovision:** delete any resources it created during the provision
+* **bind:** return credentials needed to access the resources e.g. username and password for the database
+* **unbind:** remove the resource credentials
+
+For an action, there is an Ansible playbook available in the `playbooks/` directory named the same as the action. These playbooks can do anything and 
+use all roles that are available in the Ansible ecosystem. 
+
+Most APBs will normally have a provision action to create resources and a deprovision action to destroy the resources when deleting the service.
+
+The bind and unbind actions are used when the coordinates of one service needs to be made available to another service, 
+like the database credentials in this lab. This is often the case when creating a data service and making it available to an application. 
+
+Single actions use normal Ansible playbooks, this gives your enormous power 
+to be able to automate provisioning any type of infrastructure directly from 
+the service catalog in OpenShift. The Ansible ecosystem already has a long list 
+of published playbooks and roles for automation of Oracle, Amazon, Google, Microsoft, VMware, and other type of 
+infrastructure both on-premise and in the public clouds. Have a peek at https://galaxy.ansible.com/explore#/[Ansible Galaxy] to 
+see some of the roles that the Ansible community has built and published.
+
+The playbooks needed for creating and removing MySQL databases on DigtalOcean 
+is already prepared for you (using the official 
+http://docs.ansible.com/ansible/latest/modules/digital_ocean_module.html[DigitalOcean Ansible modules]). 
+Copy the playbooks into your APB directory:
 
 [source,shell,role=copypaste]
 ```
-\cp -rf ~/support/mysql-digital-ocean-apb/{playbooks,roles} .     # \ is to disable the 'cp -i' alias
+\cp -rf ~/support/mysql-digital-ocean-apb/{playbooks,roles} . 
 ```
 
-Explain the APB process (build docker image, push ,etc). Although APB CLI generates a Dockerfile since
-you need some extra python libraries, replace it with this one:
+NOTE: `\cp` is used to disable the linux alias so that you don't have to confirm an overwrite for every single file.
+
+That's all. You can now build the APB image using the APB CLI tool. 
+
+The build step is responsible for building a container image from the named playbooks for distribution. Packaging combines 
+a base image containing an Ansible runtime with Ansible artifacts and any dependencies required to run the playbooks.
+
+The result is a container image that executes the playbooks based on the chosen action (provision, deprovision, etc).
+
+The `Dockerfile` for building the APB image is already generated for you by the 
+`apb init` command. However for using the DigitalOcean Ansible modules, you need 
+to add some extra dependencies into the `Dockerfile`.
+
+Run the following to replace the `Dockerfile` with the one that includes the 
+required dependencies:
 
 [source,shell,role=copypaste]
 ```
@@ -228,125 +241,201 @@ ENV ANSIBLE_HOST_KEY_CHECKING false
 EOF
 ```
 
-Now you are done with authoring the APB. Prepare it for distribution:
+Build the APB::
 
 [source,shell,role=copypaste]
 ```
-apb prepare
+apb build
 ```
-`
-Review Dockerfile and note LABEL
 
-Build the APB container image:
+You would see something like:
+
+[source,shell]
+```
+Finished writing dockerfile.
+Building APB using tag: [mysql-digital-ocean-apb]
+Successfully built APB image: mysql-digital-ocean-apb
+```
+
+The APB is ready know and the image is stored in your local docker daemon. In 
+order to use the APB in OpenShift, you also need to add it to OpenShift service 
+catalog. Admin users are in charge of managing the service catalog and 
+therefore, you should log in as the admin in order to be able to publish 
+your APB.
+
+Log in to OpenShift as admin using OpenShift CLI:
+
+* Admin Username: `{{OPENSHIFT_ADMIN_USER}}`
+* Admin Password: `{{OPENSHIFT_ADMIN_PASSWORD}}`
 
 [source,shell,role=copypaste]
 ```
-sudo apb build
+oc login -u {{OPENSHIFT_ADMIN_USER}} -p {{OPENSHIFT_ADMIN_PASSWORD}}
 ```
 
-Now you should add it to the service catalog. You have to log in as admin first since this is admin thing to do:
+And then publish your APB to OpenShift:
+
+CAUTION: Replace `GUID` with the guid provided to you.
 
 [source,shell,role=copypaste]
 ```
-oc login -u admin -p openshift
 apb push --registry-route {{ OPENSHIFT_REGISTRY }}
 ```
 
-Log back in as your own user for rest of the labs
+You should see something like:
 
-[source,shell,role=copypaste]
+[source,shell]
 ```
-oc login -u {{ OPENSHIFT_USER }}
+...
+Successfully bootstrapped Ansible Service Broker
+Successfully relisted the Service Catalog
 ```
 
-Go to the OpenShift Web Console and inside the STAGE project and in the _Search Catalog_ field search for
-_Digital Ocean_  and click on **Digital Ocean MySQL* to provision it. Ansible playbooks inside our APB are using Digital Ocean Ansible module and also REST API. Both of those need Digital Ocean API key for authentication. Cluster admin can add secrets that will be injected to Ansible Playbook Bundle execution pods. We have already created secret with API key for you and configured it to be used in the provisioning.
+Ansible playbooks inside your APB need DigtalOcean API Key in order to authenticate against 
+DigitalOcean and create servers. The OpenShift admin has already defined an 
+{{OPENSHIFT_DOCS_BASE}}/dev_guide/secrets.html[OpenShift secret] in the platform that stores 
+the DigitalOcean API Key and are automatically injected into the pods executing the APB.
+
+Let's try your new MySQL DigitalOcean APB. 
+
+Go to the OpenShift Web Console and inside stage environment (*CoolStore STAGE* project), and click 
+on **Catalog** on the left sidebar (or just search for _DigitalOcean_ in the **Search Catalog**).
+
+If you don't see an item called **Digital Ocean MySQL (APB)**, refresh your browser. 
+
+Click on **DigtalOcean MySQL** to provision a MySQL database on DigitalOcean. 
+
 
 If catalog item is not visible refresh Web Console or logout and log back in.
 
 image::devops-externaldb-search-catalog.png[Search catalog for APB]
 
-Once correct catalog item is selected you will be displayed general information about catalog item.
+Once correct catalog item is selected you will be displayed general information about the item.
 
 image::devops-externaldb-apb-general-info.png[General info about APB]
 
-Service Broker API gives you possibility to have different plans in your Service Catalog items. This Ansible Playbook Bundle item has three plans 512mb, 2gb and 4gb. Default plan _512mb_ is already selected for you.
+Service Broker API gives you possibility to have different plans in your Service Catalog items. This APB 
+has three plans 512mb, 2gb and 4gb as you defined in the APB spec `apb.yml`. 
+
+Default plan _512mb_ is already selected for you.
 
 image::devops-externaldb-select-plan.png[Select plan]
 
-All Service Catalog items accept parameters which you can use to tune your services to be provisioned. Different plans can have different parameters, but in this case parameters are the same for all plans. Parameters are defined in apb.yml file during APB creation process. All parameters is this catalog item are mandatory. You can choose to which Digital Ocean region you want your database to be provisioned. Default sfo1 is close so we'll use that. After parameters are set, scroll down and select _Next_
+All service catalog items accept parameters which you can use to tune your
+services to be provisioned. Different plans can have different parameters, but in this 
+case parameters are the same for all plans. Parameters are also defined in `apb.yml` file during 
+APB creation process. 
+
+All parameters is this APB are mandatory. You can choose in which DigtalOcean region you want 
+your database to be provisioned. Default `sfo1` is close so we'll use that. 
+
+Enter these values and then click on **Next**:
+
+* Database service name: `externaldatabase`
+* Database user password: `openshiftrocks`
+* Retype Database user password: `openshiftrocks`
 
 image::devops-externaldb-configuration.png[Configure your service]
 
-When we provisioned Jenkins from Service Catalog we didn't create secret that can be bind to other applications in the projects. This time we need that secret so that catalog application knows how to connect to external database. We will link created secrets to catalog application later. Select _Create_ once you have changed default selection.
+When you provisioned Jenkins from Service Catalog you didn't create any secrets that can be bind to other 
+applications in the projects. This time we need that secret so that Catalog service knows how to 
+connect to this database. We will link created secrets to catalog application later. 
 
 image::devops-externaldb-choose-bind-creds.png[Create secret for binding]
 
-All done, next click _Continue to the project overview_. Add the and of the overview page you will se MySQL Digital Ocean services and its state under Provisioned Services. Provision and binding will take from 5-10 minutes.
+All done, next click on **Continue to the project overview**. At the and of the overview page you will 
+see a **Digital Ocean MySQL (APB)** services and its state under **Provisioned Services**. Provision 
+and binding will take from 5-10 minutes until the server is deployed on Digital Ocean and MySQL is 
+installed on it.
 
 image::devops-externaldb-provisioning-ongoing.png[Service provisioning]
 
-Provisioning is executed in a pod in namespace which is created by Openshift Ansible Service Broker. This namespace and also pod have a random name, so we need to use labels to find correct project and pod. By default these provisioning and deprovisioning namesapaces are removed automatically. You can change this behaviour from Ansible Service Broker configuration.
+Provisioning is executed in a pod in namespace which is created by Openshift Ansible Service Broker. This namespace 
+and also pod have a random name, so we need to use labels to find correct project and pod. By default these provisioning 
+and deprovisioning namesapaces are removed automatically. You can change this behaviour from Ansible 
+Service Broker configuration.
 
-Execute following commands to find correct namespace and then read pod logs. You need to pretty fast.
+
+You can also take a look at the Ansible logs as they getting executed. First find the project 
+name where the APB is running:
 
 [source,shell,role=copypaste]
 ```
-oc login -u admin -p openshift
-oc project $(oc get project -l apb-fqname=localregistry-mysql-digital-ocean-apb --no-headers=true | awk '{print $1}')
-oc logs -f $(oc get po -l apb-fqname=localregistry-mysql-digital-ocean-apb --no-headers=true | awk '{print $1}')
+oc get project -l apb-fqname=localregistry-mysql-digital-ocean-apb
+oc project localregistry-mysql-digital-ocean-apb-prov-NNNNN
 ```
 
-Log back in as your own user for rest of the labs
+Then see the logs from the APB pod. Note that you should replace your own project and pod name 
+in the following commands:
+
+[source,shell,role=copypaste]
+```
+oc get pods -n localregistry-mysql-digital-ocean-apb-prov-NNNNN
+oc logs -f apb-NNNNNNNNN-NNNN-NNNN-NNNN-NNNNNNNNN 
+```
+
+You won't need the admin user anymore, so log back in as the `{{ OPENSHIFT_USER }}` user:
 
 [source,shell,role=copypaste]
 ```
 oc login -u {{ OPENSHIFT_USER }}
 ```
 
-You can check is everything done by expanding service in STAGE project _Overview_ page
+You can check is everything is ready by expanding services under **Provisioned Services**
 
 image::devops-externaldb-open-service.png[Expand service view]
 
-When your secret is created for you, you should have options _Delete_ and _View Secret_. If those are not present, provisioning and binding is not ready yet. Select _View Secret_ to display information about secret.
+When the secret containing the MySQL database credentials is created for you, you will see the **Delete** 
+and **View Secret** links being visible. If those are not present, provisioning and binding is not complete 
+yet. 
+
+Select **View Secret** to display information about secret.
 
 image::devops-externaldb-view-secret.png[View secret]
 
-From secret view you can add this secret to any application you have in your project. Select _Add to Application_ to continue.
+You can now add this secret to any application you have in your project so that the MySQL credentials get injected 
+into the application pod as environment variables or a file. 
+
+Select **Add to Application** to continue.
 
 image::devops-externaldb-add-to-application.png[Add secret to application]
 
-Select _catalog_ and and _APB__ as environment variable prefix. By using prefix you will not accidentally overwrite some environment variables that you may already have. Select _Save_ when done.
+Select **catalog** and select **Environment variables**. Enter `APB_` as **Prefix** so that all environment variables that 
+come from this secret are prefixed with `APB_`. This allows us to avoid accidentally overwriting other 
+environment variables that you may already have. Click on **Save**.
 
 image::devops-externaldb-select-application.png[Select application and give env prefix]
 
-Now that all relevant information is bound to your application we need to start using those to get connection to external database. Catalog services uses configmap named catalog to configure connection to database. We will delete old configmap and create new with environment variables from APB.
+Now all the info (username, password, hostname, tec) needed for the Catalog service to connect to the external MySQL 
+database on DigitalOcean is available in the Catalog pod. Catalog service is based on Spring Boot and we have already 
+externalized its configuration into a configmap that is injected in the Catalog pod by the platform, similar to how the 
+secrets are injected into the pod.
 
-Create new configmap
+On the left sidebar click on **Resources** > **Config Maps** > **catalog**.
+
+You can see the current Catalog configuration that uses the MySQL pod deployed within the staging environment.
+
+image::devops-externaldb-config-before.png[Catalog Configuration]
+
+
+Click on **Actions** > **Edit** to modify the configmap and use the environment variables 
+that come from the APB binding (secret). Paste the following into the configmap and click on **Save**.
 
 [source,shell,role=copypaste]
 ```
-cat <<'EOF' > /tmp/application.properties
 spring.datasource.url=jdbc:mysql://${APB_DB_SERVICE_NAME}:3306/${APB_DB_NAME}?useSSL=false
 spring.datasource.driver-class-name=com.mysql.jdbc.Driver
 spring.datasource.username=${APB_DB_USER}
 spring.datasource.password=${APB_DB_PASSWORD}
 spring.jpa.hibernate.ddl-auto=create
-EOF
 ```
 
-Delete old configmap
+image::devops-externaldb-config-after.png[Catalog Configuration]
 
-[source,shell,role=copypaste]
-```
-oc delete configmap catalog -n stage
-```
+Note that the `APB_DB_SERVICE_NAME`, `APB_DB_USER` and `APB_DB_PASSWORD` environment variables are injected into the 
+Catalog pod by the secret that is created during the provisioning of the **Digital Ocean MySQL APB**. 
 
-Create new configmap and redeploy catalog
+You should redeploy the Catalog service so that it uses the new configmap content as configuration. In the left 
+sidebar, click on **Applications** > **Deployments** > **catalog** and then click on the **Deploy** button.
 
-[source,shell,role=copypaste]
-```
-oc create configmap catalog --from-file=/tmp/application.properties -n stage
-```
-
-Now you have connected your application with external database running in Digital Ocean.
+Now you have connected your application with external database running in DigtalOcean.
