@@ -35,7 +35,7 @@ $ ssh workstation-GUID.generic.opentlc.com
 
 **OPENSHIFT DEV CLUSTER**
 
-Web Console: [blue]`\{{ OPENSHIFT_URL }}` + 
+Address: [blue]`\{{ OPENSHIFT_URL }}` + 
 Image Registry: [blue]`{{ OPENSHIFT_REGISTRY }}` + 
 
 Username: `{{ OPENSHIFT_USER }}` + 
@@ -44,7 +44,7 @@ Password: `{{ OPENSHIFT_PASSWORD }}` +
 
 **OPENSHIFT PROD CLUSTER**
 
-Web Console: [blue]`\{{ PROD_URL }}` + 
+Address: [blue]`\{{ PROD_URL }}` + 
 Image Registry: [blue]`{{ PROD_REGISTRY }}` + 
 
 Username: `{{ PROD_USER }}` + 

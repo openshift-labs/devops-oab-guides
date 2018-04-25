@@ -9,7 +9,7 @@ software delivery lifecycle and deploy the application into these deployment env
 The first thing we want to do to ensure that the `oc` command line tools was installed and successfully 
 added to your path. In order to login, you can use the `oc` command and then specify the server that you want to authenticate to. Issue the following command:
 
-CAUTION: In the following url(s), replace `GUID` with the guid provided to you.
+CAUTION: Replace `GUID` with the guid provided to you.
 
 [source,shell,role=copypaste]
 ----
@@ -56,7 +56,8 @@ oc project dev{{PROJECT_SUFFIX}}
 ### OpenShift Web Console
 
 OpenShift ships with a web-based console that will allow users to perform various tasks via a browser. To 
-get a feel for how the web console works, open your browser and go to the following URL: {{OPENSHIFT_URL}}
+get a feel for how the web console works, open your browser and go to the following URL: 
+[blue]`\{{OPENSHIFT_URL}}`
 
 Since the security certificates used for securing your OpenShift cluster are self-generated and 
 self-signed, your browser will not trust them by default and will show a security warning similar to the following:
@@ -81,9 +82,9 @@ projects that your user has permission to work with.
 
 In order to deploy CoolStore application, you need the Catalog and Web UI components. The Web UI image is 
 built by the front-end team and is already available in the OpenShift container registry. You can 
-check the Web image in the `cicd{{PROJECT_SUFFIX}}` project by going to *Builds* > *Images*.
+check the Web image in the **CI/CD** project by going to *Builds* > *Images*.
 
-Deploy the Web UI into the DEV environment using the Web UI container image that is already delivered by the 
+Deploy the Web UI into the **CoolStore DEV** environment using the Web UI container image that is already delivered by the 
 front-end team:
 
 [source,shell,role=copypaste]
@@ -91,16 +92,16 @@ front-end team:
 oc new-app -f https://raw.githubusercontent.com/{{ LABS_GITHUB_ACCOUNT }}/devops-oab-labs/master/openshift/web-template.yaml
 ----
 
-CAUTION: In the following url(s), replace `GUID` with the guid provided to you.
+CAUTION: Replace `GUID` with the guid provided to you.
 
 The source code for the Catalog service is available in the following git repository: +
 [blue]`\http://{{GIT_HOSTNAME}}/{{GIT_USER}}/catalog-spring-boot.git`
 
 You should build a container image for the Catalog as well in order to be able to deploy it. You can 
-store the Catalog image in the `cicd{{PROJECT_SUFFIX}}` project as well (similar to Web UI image) so that 
+store the Catalog image in the **CI/CD** project as well (similar to Web UI image) so that 
 they can be re-used across various environments. 
 
-Create an imagestream for Catalog in the `cicd{{PROJECT_SUFFIX}}` project in order to store the Catalog 
+Create an imagestream for Catalog in the **CI/CD** project in order to store the Catalog 
 images (note the `-n` flag):
 
 [source,shell,role=copypaste]
@@ -108,21 +109,25 @@ images (note the `-n` flag):
 oc create -f https://raw.githubusercontent.com/{{ LABS_GITHUB_ACCOUNT }}/devops-oab-labs/master/openshift/catalog-is.yaml -n cicd{{PROJECT_SUFFIX}}
 ----
 
-Now you can deploy the Catalog service into the DEV environment using a template that builds the Catalog container 
-image from source code via Source-to-Image capability:
+{{OPENSHIFT_DOCS_BASE}}/dev_guide/templates.html[OpenShift Templates] allow composing applications 
+from multiple containers and deploy them at once. The Catalog service needs a MySQL database and 
+therefore you can use a template that is already created to deploy the Catalog skeleton project and 
+a MySQL database on OpenShift at once.
 
-CAUTION: In the following url(s), replace `GUID` with the guid provided to you.
+Deploy the Catalog service into **CoolStore DEV** environment using the template that builds the Catalog container 
+image from source code via Source-to-Image capability and deploys it afterwards:
+
+CAUTION: Replace `GUID` with the guid provided to you.
 
 [source,shell,role=copypaste]
 ----
 oc new-app -f https://raw.githubusercontent.com/{{ LABS_GITHUB_ACCOUNT }}/devops-oab-labs/master/openshift/catalog-template.yaml \
-      --param=GIT_URI=http://{{GIT_HOSTNAME}}/{{GIT_USER}}/catalog-spring-boot.git \
-      --param=MAVEN_MIRROR_URL=http://nexus.lab-infra.svc:8081/repository/maven-all-public
+      --param=GIT_URI=http://{{GIT_HOSTNAME}}/{{GIT_USER}}/catalog-spring-boot.git
 ----
 
-You will see the application being deployed in your `dev{{PROJECT_SUFFIX}}` environment.
+You will see the application being deployed in the **CoolStore DEV** environment.
 
 image::devops-explore-dev-app-deployed.png[Dev environment provisioned]
 
 Point your browser to the Web UI route url to verify CoolStore application is deployed successfully into the 
-DEV environment.
+**CoolStore DEV** environment.

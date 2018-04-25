@@ -176,7 +176,7 @@ Now, let's create a new Pipeline build in OpenShift that will use this Jenkins f
 
 Like before, on you `cicd{{PROJECT_SUFFIX}}` project, click on *Add to project -> Import YAML/JSON* menu and enter the following definition:
 
-CAUTION: In the following url(s), replace `GUID` with the guid provided to you.
+CAUTION: Replace `GUID` with the guid provided to you.
 
 [source,shell,role=copypaste]
 ----

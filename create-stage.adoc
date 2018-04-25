@@ -1,6 +1,6 @@
 ## Release Catalog Service to STAGE Environment
 
-In previous labs, you built and deployed the Coolstore applications with the Catalog and Web containers 
+In previous labs, you built and deployed the CoolStore application with the Catalog and Web containers 
 into the *Coolstore DEV* project. The development phase of application generally involves many iterations 
 and builds until we ready with a chunk of functionality that can be deployed into production.
 
@@ -14,16 +14,12 @@ creating appropriate tags in the git repository so that the source code in the r
 as well as creating a binary release of the Catalog service in form of a jar file which will be used across 
 all environments and deployments.
 
-In order to create a release pipeline, first go to the `cd-infra` directory:
 
-[source,shell,role=copypaste]
-----
-cd cd-infra
-----
+CAUTION: Make sure you ware in your local working copy of the `cd-infra` git repository.
 
-And then create a Jenkinsfile with the following content:
+Create a Jenkinsfile with the following content:
 
-CAUTION: In the following url(s), replace `GUID` with the guid provided to you.
+CAUTION: Replace `GUID` with the guid provided to you.
 
 [source,shell,role=copypaste]
 ----
@@ -102,7 +98,7 @@ git push origin master
 
 As mentioned above, the release process creates a git release in the git repository and tags the source code with 
 the release version. In order for Jenkins to do that, it has to have access to the git credentials with suitable 
-permissions to create tags and release in the repository. Although usually a separeate git account is created for 
+permissions to create tags and release in the repository. Although usually a separate git account is created for 
 Jenkins, you can use your own credentials in this lab. 
 
 But how can you tell Jenkins to use your git credentials without exposing your password and storing it in the git 
@@ -114,7 +110,7 @@ transmit over the network for that matter. The Jenkins instance on OpenShift use
 create Jenkins Credentials based on the secrets defined by the user which are then used in the pipeline for various 
 purposes such as create releases in the git repository. 
 
-Make sure you're still on the `cicd{{PROJECT_SUFFIX}}` project.
+Make sure you're still on the **CI/CD** project.
 
 [source,shell,role=copypaste]
 ----
@@ -138,10 +134,10 @@ credentials within a Jenkins.
 
 
 You can now create an OpenShift pipeline that refers to the `Jenkinsfile.release` that you have stored in the git 
-repository. In the *cicd{{PROJECT_SUFFIX}}* project, click on *Add to Project* > *Import YAML/JSON* and paste the following 
+repository. In the **CI/CD** project, click on *Add to Project* > *Import YAML/JSON* and paste the following 
 into the field:
 
-CAUTION: In the following url(s), replace `GUID` with the guid provided to you.
+CAUTION: Replace `GUID` with the guid provided to you.
 
 [source,shell,role=copypaste]
 ----
@@ -183,10 +179,12 @@ YAML which specify the git repository where the Jenkinsfile is stored and the ex
 
 Go to *Builds* > *Pipelines* to see the pipeline execution in progress. 
 
+image::devops-stage-pipeline-release.png[Release Pipeline]
+
 After the pipeline is completed successfully (all green, yaay!), go the git repository in your browser to 
 review the git release that is created:
 
-CAUTION: In the following url(s), replace `GUID` with the guid provided to you.
+CAUTION: Replace `GUID` with the guid provided to you.
 
 Git server web: +
 [blue]`\http://{{GIT_HOSTNAME}}/{{GIT_USER}}/catalog-spring-boot/releases`
@@ -197,11 +195,16 @@ image::devops-stage-gogs-release.png[Gogs release]
 Point your browser to the Nexus Maven Repository to review the binary release of the Catalog service in form 
 of a jar file:
 
-CAUTION: In the following url(s), replace `GUID` with the guid provided to you.
+CAUTION: Replace `GUID` with the guid provided to you.
 
 Nexus Maven Repository: +
 [blue]`\{{NEXUS_EXTERNAL_URL}}/#browse/browse:maven-all-public:com%2Fredhat%2Fcloudnative%2Fcatalog`
 
+
+Did you notice that while the **catalog-release** pipelne was running, the **catalog-build** also started 
+running? The reason for that is that during the release process, `pom.xml` is modified to increase 
+the version number and is pushed back to the git repository. You wanted **catalog-build** pipeline to 
+run on every change that takes place in the git repository, right?
 
 image::devops-stage-nexus.png[Nexus released artifact]
 
@@ -218,14 +221,14 @@ application.
 Extend the release pipeline in order to not only create a release but also create a container image from the 
 binary release catalog and deploy the container image in the staging environment all at once.
 
-If you are comfortable with `vi` text editor, we envy you. Use that and good luck! (don't 
-forget to run `git commit` and `git push`)
+If you are comfortable with `vi` text editor, we envy you! Use that and good luck! (don't 
+forget to run `git commit` and `git push` afterwards)
 
 If not, use the git server web for editing the `Jenkinsfile.release`: +
 [blue]`\http://{{GIT_HOSTNAME}}/{{GIT_USER}}/cd-infra/src/master/Jenkinsfile.release`
 
 Click on the pencil icon to edit `Jenkinsfile.release` and add the following `stages` at the 
-end of the release pipeline and click on *Commit* button.
+end of the release pipeline and click on *Commit Changes* button.
 
 [source,shell,role=copypaste]
 ----
@@ -273,7 +276,8 @@ order to build confidence in the process for building new environments whenever 
 the common repeatability concerns that often surrounds deployments environment. Need more 
 test and staging environments? They are one click away!
 
-Go to *Builds* > *Pipelines* and start the pipeline again by clicking on the *Start the Pipeline*. 
+Go to *Builds* > *Pipelines* and start the release pipeline again by clicking on the *Start Pipeline* near 
+the **catalog-release** pipeline.
 
 
 image::devops-stage-released.png[Stage released]
@@ -283,5 +287,6 @@ environment.
 
 image::devops-stage-project-overview.png[Stage project overview]
 
-Point your browser to the Web route url in order to verify the CoolStore app is working as expected in 
-the staging environment.
+Wait till all pods are deployed in the *CoolStore STAGE*  environment and then point your browser to 
+the Web route url in the *CoolStore STAGE* environment in order to verify the CoolStore app is 
+working as expected in the staging environment.

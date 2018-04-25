@@ -12,7 +12,7 @@ requires every change to go through the pipeline and verify if it can be release
 
 Since manually click on *Start Pipeline* every time someone commits code or configuration 
 to the Git repository is not possible across an entire development team, you can use Git 
-Webhooks mechanism to trigger the pipeline (and any other builds in OpenShift) automatically 
+https://developer.github.com/webhooks/[Webhooks mechanism] to trigger the pipeline (and any other builds in OpenShift) automatically 
 every time there is a change in the Cart service Git repository.
 
 image::devops-webhook-diagram.png[Git Webhook]
@@ -31,13 +31,15 @@ image::devops-webhook-pipeline-config.png[Pipeline config]
 
 Go to Git server by pointing your browser at Git server web url and login using your credentials:
 
-CAUTION: In the following url(s), replace `GUID` with the guid provided to you.
+CAUTION: Replace `GUID` with the guid provided to you.
 
-* Git Server Web:  `http://{{GIT_HOSTNAME}}`
+* Git Server Web:  [blue]`\http://{{GIT_HOSTNAME}}`
 * Username: `{{GIT_USER}}`
 * Password: `{{GIT_PASSWORD}}`
 
-Click on *catlaog-spring-boot* under *My Repositories* to go to the repository 
+The source code for the Catalog service is stored in the *catlaog-spring-boot* repository and you 
+want the pipeline to run for every change that takes place on this git repository. Click 
+on *catlaog-spring-boot* repository under *My Repositories* to go to the repository 
 overview. Click on *Settings* and then *Webhooks*. Currently no webhooks are defined 
 on _cart-service_ repository. Click on *Add Webhook* and choose *Gogs*. Paste 
 the pipeline webhook URL you copied in previous steps into the *Payload URL* text 

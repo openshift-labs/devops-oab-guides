@@ -19,7 +19,7 @@ with an application.
 
 You can use the following credentials to access the production OpenShift cluster.
 
-CAUTION: In the following url(s), replace `GUID` with the guid provided to you.
+CAUTION: Replace `GUID` with the guid provided to you.
 
 * Production OpenShift Web Console: [blue]`\{{PROD_URL}}`
 * Production OpenShift User: `{{PROD_USER}}`
@@ -46,7 +46,7 @@ be used in Jenkins and the pipeline via the Jenkins Credentials, the same way as
 In addition to username and password, OpenShift provides an authentication token which can be used by users and
 APIs to interact with OpenShift. Log into production OpenShift using your production credentials:
 
-CAUTION: In the following url(s), replace `GUID` with the guid provided to you.
+CAUTION: Replace `GUID` with the guid provided to you.
 
 [source,shell,role=copypaste]
 ----
@@ -78,7 +78,7 @@ oc label secret prod-credentials credential.sync.jenkins.openshift.io=true
 You can now login back into the development OpenShift cluster. All interactions with the production cluster in
 the following sections will take place via the pipeline.
 
-CAUTION: In the following url(s), replace `GUID` with the guid provided to you.
+CAUTION: Replace `GUID` with the guid provided to you.
 
 [source,shell,role=copypaste]
 ----
@@ -238,7 +238,7 @@ Go to the OpenShift web console (development cluster) abd the *CI/CD* project. C
 *Add to Project* > *Import YAML/JSON* and paste the following YAML file to create a pipeline
 that uses the `Jenkinsfile.create-prod` from the `cd-infra` git repository:
 
-CAUTION: In the following url(s), replace `GUID` with the guid provided to you.
+CAUTION: Replace `GUID` with the guid provided to you.
 
 [source,shell,role=copypaste]
 ----
@@ -294,7 +294,7 @@ the pipeline deployes the selected versions into production.
 As the pipeline progresses, log into the production OpenShift Web Console and verify that the CoolStore application is
 deployed into production.
 
-CAUTION: In the following url(s), replace `GUID` with the guid provided to you.
+CAUTION: Replace `GUID` with the guid provided to you.
 
 * Production OpenShift Web Console: [blue]`\{{PROD_URL}}`
 * Production OpenShift User: `{{PROD_USER}}`

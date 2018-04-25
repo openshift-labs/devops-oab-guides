@@ -8,6 +8,8 @@ vars:
   OPENSHIFT_URL: "https://masterdev-GUID.generic.opentlc.com:8443"
   OPENSHIFT_USER: "student"
   OPENSHIFT_PASSWORD: "openshift"
+  OPENSHIFT_ADMIN_USER: "admin"
+  OPENSHIFT_ADMIN_PASSWORD: "openshift"
   OPENSHIFT_REGISTRY: "docker-registry-default.devapps-GUID.generic.opentlc.com"
   PROD_URL: "https://masterprod-GUID.generic.opentlc.com:8443"
   PROD_USER: "student"
