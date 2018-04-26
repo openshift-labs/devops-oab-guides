@@ -339,7 +339,9 @@ your database to be provisioned. Default `sfo1` is close so we'll use that.
 
 Enter these values and then click on **Next**:
 
-* Database service name: `externalmysql`
+CAUTION: Replace `GUID` with the guid provided to you.
+
+* Database service name: `catalogdbGUID`
 * Database user password: `openshiftrocks`
 * Retype Database user password: `openshiftrocks`
 
