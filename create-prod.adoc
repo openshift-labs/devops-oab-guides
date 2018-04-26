@@ -172,7 +172,7 @@ pipeline {
             openshift.withProject(prodProject) {
               def template = 'https://raw.githubusercontent.com/{{ LABS_GITHUB_ACCOUNT }}/devops-oab-labs/master/openshift/coolstore-apb-template.yaml'
               openshift.apply(
-                openshift.process("-f", template, "-p", "CATALOG_IMAGE_VERSION=${catalogReleaseTag}", "-p", "WEB_IMAGE_VERSION=${webReleaseTag}")
+                openshift.process("-f", template, "-p", "CATALOG_IMAGE_VERSION=${catalogReleaseTag}", "-p", "WEB_IMAGE_VERSION=${webReleaseTag}", "-p", "IMAGE_NAMESPACE=")
               )
             }
           }
@@ -262,14 +262,6 @@ spec:
           value: "prod{{ PROJECT_SUFFIX }}"
       jenkinsfilePath: Jenkinsfile.create-prod
     type: JenkinsPipeline
-  triggers:
-    - github:
-        secret: CqPGlXcKJXXqKxW4Ye6z
-      type: GitHub
-    - generic:
-        secret: 4LXwMdx9vhQY4WXbLcFR
-      type: Generic
-    - type: ConfigChange
 ----
 
 Click on *Create*.
@@ -287,7 +279,10 @@ Confirm that you allow Jenkins to get your information from OpenShift.
 
 
 Choose the latest version of the Catalog and Web container images from the dropdown lists and click *Deploy* so that
-the pipeline deployes the selected versions into production.
+the pipeline deployed the selected versions into production.
+
+Like the staging environment, an APB is used to provision a MySQL database on a virtual machine running on DigitalOcean 
+servers. It takes a few minutes for the database to get provisioned. 
 
 As the pipeline progresses, log into the production OpenShift Web Console and verify that the CoolStore application is
 deployed into production.

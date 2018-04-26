@@ -11,7 +11,7 @@ Many organizations have invested in sophisticated database solutions that run on
 infrastructure on virtual machines or bare-metal servers and want 
 to continue to use their existing database infrastructure with their containerizes applications.
 
-In this lab you will provision an external MySQL database on DigtalOcean cloud servers and connect it to 
+In this lab you will provision an external MySQL database on DigitalOcean cloud servers and connect it to 
 the Catalog service. Furthermore, you will automate this process using Ansible and Ansible Playbook Bundles (APB). 
 
 https://www.ansible.com/[Ansible] is a radically simple IT automation system that handles configuration-management, 
@@ -60,7 +60,7 @@ apb init mysql-digital-ocean-apb --bindable
 
 NOTE: The `mysql-digital-ocean-apb` is an arbitrary name that we have chosen 
 in this lab as the name of the APB that will provision a MySQL database on 
-DigtalOcean.
+DigitalOcean.
 
 The `apb init`` command creates the required skeleton directory structure and a few required files (for example, the apb.yml spec file) for the APB.
 
@@ -90,7 +90,7 @@ cd mysql-digital-ocean-apb
 cat apb.yml
 ```
 
-Run the following to replace `apb.yml` in order to add all the parameters such as database name, DigtalOcean region, 
+Run the following to replace `apb.yml` in order to add all the parameters such as database name, DigitalOcean region, 
 etc as well as define database server sizes (small, medium and large):
 
 [source,shell,role=copypaste]
@@ -134,15 +134,15 @@ _params: &_params
     display_type: password
 version: 1.0
 name: mysql-digital-ocean-apb
-description: MySQL database from DigtalOcean
+description: MySQL database from DigitalOcean
 bindable: true
 async: optional
 tags:
 - database
 - mysql
 metadata:
-  displayName: "DigtalOcean MySQL (APB)"
-  longDescription: "MySQL 5.7 running on CentOs 7.4 in DigtalOcean"
+  displayName: "DigitalOcean MySQL (APB)"
+  longDescription: "MySQL 5.7 running on CentOs 7.4 in DigitalOcean"
   console.openshift.io/iconClass: icon-mysql-database
   providerDisplayName: "Red Hat, Inc."
 plans:
@@ -151,7 +151,7 @@ plans:
     free: true
     metadata:
       displayName: Default (512MB)
-      longDescription: This plan provides small (512MB) droplet from DigtalOcean with MySQL
+      longDescription: This plan provides small (512MB) droplet from DigitalOcean with MySQL
       cost: $0.00
     parameters: *_params
   - name: 2gb
@@ -159,7 +159,7 @@ plans:
     free: true
     metadata:
       displayName: Medium (2GB)
-      longDescription: This plan provides medium (2GB) droplet from DigtalOcean with MySQL
+      longDescription: This plan provides medium (2GB) droplet from DigitalOcean with MySQL
       cost: $10.00 monthly
     parameters: *_params
   - name: 4gb
@@ -167,7 +167,7 @@ plans:
     free: true
     metadata:
       displayName: Large (4GB)
-      longDescription: This plan provides large (4GB) droplet from DigtalOcean with MySQL
+      longDescription: This plan provides large (4GB) droplet from DigitalOcean with MySQL
       cost: $40.00 monthly
     parameters: *_params
 EOF
@@ -195,7 +195,7 @@ of published playbooks and roles for automation of Oracle, Amazon, Google, Micro
 infrastructure both on-premise and in the public clouds. Have a peek at https://galaxy.ansible.com/explore#/[Ansible Galaxy] to 
 see some of the roles that the Ansible community has built and published.
 
-The playbooks needed for creating and removing MySQL databases on DigtalOcean 
+The playbooks needed for creating and removing MySQL databases on DigitalOcean 
 is already prepared for you (using the official 
 http://docs.ansible.com/ansible/latest/modules/digital_ocean_module.html[DigitalOcean Ansible modules]). 
 Copy the playbooks into your APB directory:
@@ -299,7 +299,7 @@ Successfully bootstrapped Ansible Service Broker
 Successfully relisted the Service Catalog
 ```
 
-Ansible playbooks inside your APB need DigtalOcean API Key in order to authenticate against 
+Ansible playbooks inside your APB need DigitalOcean API Key in order to authenticate against 
 DigitalOcean and create servers. The OpenShift admin has already defined an 
 {{OPENSHIFT_DOCS_BASE}}/dev_guide/secrets.html[OpenShift secret] in the platform that stores 
 the DigitalOcean API Key and are automatically injected into the pods executing the APB.
@@ -311,7 +311,7 @@ on **Catalog** on the left sidebar (or just search for _DigitalOcean_ in the **S
 
 If you don't see an item called **Digital Ocean MySQL (APB)**, refresh your browser. 
 
-Click on **DigtalOcean MySQL** to provision a MySQL database on DigitalOcean. 
+Click on **DigitalOcean MySQL** to provision a MySQL database on DigitalOcean. 
 
 
 If catalog item is not visible refresh Web Console or logout and log back in.
@@ -334,12 +334,12 @@ services to be provisioned. Different plans can have different parameters, but i
 case parameters are the same for all plans. Parameters are also defined in `apb.yml` file during 
 APB creation process. 
 
-All parameters is this APB are mandatory. You can choose in which DigtalOcean region you want 
+All parameters is this APB are mandatory. You can choose in which DigitalOcean region you want 
 your database to be provisioned. Default `sfo1` is close so we'll use that. 
 
 Enter these values and then click on **Next**:
 
-* Database service name: `externaldatabase`
+* Database service name: `externalmysql`
 * Database user password: `openshiftrocks`
 * Retype Database user password: `openshiftrocks`
 
@@ -447,4 +447,12 @@ created during the provisioning of the **Digital Ocean MySQL APB**.
 You should redeploy the Catalog service so that it uses the new configmap content as configuration. In the left 
 sidebar, click on **Applications** > **Deployments** > **catalog** and then click on the **Deploy** button.
 
-Now you have connected your application with external database running in DigtalOcean.
+Now you have connected your application with external database running in DigitalOcean.
+
+You can verify that by scaling down the MySQL pod in the staging environment to zero pods. Click on the 
+down arrow near the MySQL pod to scale it to zero.
+
+Hit the web route url and see that CoolStore application is working fine since the database in running 
+on a virtual machine on DigitalOcean! 
+
+image::devops-externaldb-scale-down.png[MySQL Scaled Down]

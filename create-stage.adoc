@@ -161,14 +161,6 @@ spec:
           value: "stage{{PROJECT_SUFFIX}}"
       jenkinsfilePath: Jenkinsfile.release
     type: JenkinsPipeline
-  triggers:
-    - github:
-        secret: CqPGlXcKJXXqKxW4Ye6z
-      type: GitHub
-    - generic:
-        secret: 4LXwMdx9vhQY4WXbLcFR
-      type: Generic
-    - type: ConfigChange
 ----
 
 image::devops-stage-paste-yaml.png[Paste Pipeline yaml]
