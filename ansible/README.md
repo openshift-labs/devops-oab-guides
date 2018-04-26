@@ -49,10 +49,12 @@ Tips
   docker pull registry.access.redhat.com/rhscl/mysql-57-rhel7
   docker pull registry.access.redhat.com/openshift3/ose-deployer
   docker pull registry.access.redhat.com/openshift3/ose-sti-builder
+  docker pull registry.access.redhat.com/openshift3/apb-base:v3.9
   docker pull sonatype/nexus3:3.7.1
   docker pull openshiftdemos/gogs:0.11.34
   docker pull osevg/workshopper:latest
   docker pull siamaksade/rhsummit18-devops-web
+  docker.io/ansibleplaybookbundle/apb-base:v3.9
 
   ```
 

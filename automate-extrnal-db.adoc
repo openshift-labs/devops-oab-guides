@@ -224,13 +224,21 @@ required dependencies:
 [source,shell,role=copypaste]
 ```
 cat <<'EOF' > Dockerfile
-FROM openshift3/apb-base
+FROM openshift3/apb-base:v3.9
 
 LABEL "com.redhat.apb.spec"=\
 
-RUN yum-config-manager --disable rhel-7-server-htb-rpms && yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm && yum -y update && yum -y install python git python-pip python-requests python-setuptools python-wheel && yum clean all
-RUN pip install --upgrade pip --user apb --cache-dir /tmp && pip install --user apb 'dopy>=0.3.7,<=0.3.7' --cache-dir /tmp
-RUN chown -R apb:0 /opt/apb && chmod -R g=u /opt/apb /etc/passwd
+RUN yum-config-manager --disable rhel-7-server-htb-rpms && \
+    yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm && \
+    yum -y update && \
+    yum -y install python git python-pip python-requests python-setuptools python-wheel && \
+    yum clean all
+
+RUN pip install --upgrade pip --user apb --cache-dir /tmp && \
+    pip install --user apb 'dopy>=0.3.7,<=0.3.7' --cache-dir /tmp
+
+RUN chown -R apb:0 /opt/apb && \
+    chmod -R g=u /opt/apb /etc/passwd
 
 COPY playbooks /opt/apb/actions
 COPY roles /opt/apb/actions/roles
@@ -248,7 +256,7 @@ Build the APB::
 apb build
 ```
 
-You would see something like:
+It will take a little while till the APB container image is built. After it finishes, you would see something like:
 
 [source,shell]
 ```
