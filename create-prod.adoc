@@ -229,6 +229,9 @@ git commit -m "create prod pipeline added"
 git push origin master
 ----
 
+image::devops-prod-git.png[Pipelines]
+
+
 
 ### Create the PROD OpenShift Pipeline
 
@@ -269,6 +272,8 @@ Click on *Create*.
 Go to *Builds* > *Pipelines* and click on *Start Pipeline* near the *coolstore-create-prod* pipeline. The
 pipeline starts but pauses to ask for some information before it can create the production environment.
 
+image::devops-prod-pipeline-input.png[Production Pipeline]
+
 Click on *Input* which will take you to Jenkins. Jenkins authentication is integrated with OpenShift (via OAuth) and therefore
 you can use your OpenShift credentials to log into Jenkins.
 
@@ -281,8 +286,7 @@ Confirm that you allow Jenkins to get your information from OpenShift.
 Choose the latest version of the Catalog and Web container images from the dropdown lists and click *Deploy* so that
 the pipeline deployed the selected versions into production.
 
-Like the staging environment, an APB is used to provision a MySQL database on a virtual machine running on DigitalOcean 
-servers. It takes a few minutes for the database to get provisioned. 
+image::devops-prod-pick-version.png[Production Pipeline - Image Versions]
 
 As the pipeline progresses, log into the production OpenShift Web Console and verify that the CoolStore application is
 deployed into production.
@@ -293,5 +297,17 @@ CAUTION: Replace `GUID` with the guid provided to you.
 * Production OpenShift User: `{{PROD_USER}}`
 * Production OpenShift Password: `{{PROD_PASSWORD}}`
 
-If you are curious, check out *Application* > *Deployments* and verify that the image versions deployed matches the
-ones you selected.
+Like the staging environment, an APB is used to provision a MySQL database on a virtual machine running on DigitalOcean 
+servers. It takes a few minutes for the database to get provisioned. 
+
+image::devops-prod-mysql-inprogress.png[DigitalOcean MySQL in Prod]
+
+If you are curious, check out *Application* > *Deployments* and then click on **catalog**. In the **Configuration** tab you 
+can see the image that is being deployed.
+
+image::devops-prod-catalog-image.png[Catalog Image]
+
+
+Click on the **prod/catalog** image to the see the specific version that is deployed.
+
+image::devops-prod-catalog-image-version.png[Catalog Image Version]
