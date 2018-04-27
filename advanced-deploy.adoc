@@ -23,7 +23,10 @@ image::devops-zerodowntime-canary.png[Canary release]
 
 We are going to release a new version of our application using a Canary release.
 
-### Configure your canary release
+You can run the **catalog-release** pipeline once more, in order to simulate as if you have changes 
+in the Catalog service and need to release a new version.
+
+### Configure Canary Release Pipeline for Catalog Service
 
 Let's create our Pipeline that will drive the canary release process.
 
@@ -93,7 +96,7 @@ pipeline {
 
               def template = 'https://raw.githubusercontent.com/openshift-labs/devops-oab-labs/master/openshift/catalog-deployment-template.yaml'
               openshift.apply(
-                openshift.process("-f", template, "-p", "IMAGE_VERSION=${releaseTag}", "-p", "APP_NAME=${canarySvc}", "-l", "deployment=${canarySvc}")
+                openshift.process("-f", template, "-p", "IMAGE_VERSION=${releaseTag}", "-p", "APP_NAME=${canarySvc}", "-p", "IMAGE_NAMESPACE=", "-l", "deployment=${canarySvc}")
               )
               openshift.set("route-backends", "catalog", "${activeSvc}=90%", "${canarySvc}=10%")
             }
@@ -206,4 +209,44 @@ spec:
 
 You should now see the pipeline being executed and the canary release rolling out.
 
-TODO: Image of the process
+image::devops-canary-created.png[Catalog Canary Release]
+
+As the pipeline progresses, it will ask you which version of the Catalog service you want to promote to production.
+
+image::devops-canary-input.png[Canary Release - Pick Version]
+
+Pick a version and click on **Deploy**. 
+
+Note that rolling back versions work the exact same way and you can pick any version to roll forward to or roll back 
+to in production. You of course need to be mindful of you data and how you deal with data versions across your application 
+versions.
+
+The new Catalog version gets deployed in production in a new pod and 10% of traffic is sent to the new version to 
+test it with production traffic for a subset of users.
+
+image::devops-canary-50.png[Canary Release - 10% Traffic]
+
+Take a look at the OpenShift Web Console in the production environment. You can see that there are two versions of the 
+Catalog service deployed with the new version receiving 10% of the traffic.
+
+image::devops-canary-10-deployed.png[Canary Release - 10% Traffic]
+
+When ready, click on **Input Required** in the pipeline and then **Approve** to increase the amount of traffic on the 
+new version. The pipeline progresses and now the new version receives 50% of the traffic.
+
+image::devops-canary-50-deployed.png[Canary Release - 50% Traffic]
+
+The pipeline pauses again for the final rollout to put 100% of traffic on the new version and remove the old version of 
+the Catalog service.
+
+image::devops-canary-100.png[Canary Release - 10% Traffic]
+
+Click on **Input Required** in the pipeline again and then **Approve** the final rollout.
+
+When the pipeline is complete, take a look at the production environment. You will notice that the old version of the 
+Catalog service is removed and all traffic is sent to the new version.
+
+image::devops-canary-100-deployed.png[Canary Release - 100% Traffic]
+
+
+Well don! You have successfully completed this lab.
