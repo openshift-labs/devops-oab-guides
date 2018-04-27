@@ -169,7 +169,7 @@ Click on *Create* to create the pipeline. Notice the `git.uri` and `jenkinsfileP
 YAML which specify the git repository where the Jenkinsfile is stored and the exact name of the Jenkinsfile.
 
 
-Go to *Builds* > *Pipelines* to see the pipeline execution in progress. 
+Go to *Builds* > *Pipelines* and *Start Pipeline* manually. You will now see the pipeline execution in progress. 
 
 image::devops-stage-pipeline-release.png[Release Pipeline]
 
@@ -276,6 +276,10 @@ image::devops-stage-released.png[Stage released]
 
 As the pipeline execution progresses, you will see the latest release gets deployed in the *CoolStore STAGE* 
 environment. 
+
+Also, you might have noticed that the pipeline for *catalog-build* has also been triggered, this is because as
+part of the release process we update the version in the maven `pom.xml`, so this new code will be also
+deployed into our *CoolStore DEV* environment.
 
 image::devops-stage-project-overview.png[Stage project overview]
 
