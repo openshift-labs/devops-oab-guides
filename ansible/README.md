@@ -54,7 +54,8 @@ Tips
   docker pull openshiftdemos/gogs:0.11.34
   docker pull osevg/workshopper:latest
   docker pull siamaksade/rhsummit18-devops-web
-  docker.io/ansibleplaybookbundle/apb-base:v3.9
+  docker pull siamaksade/rhsummit18-mysql-digital-ocean-apb
+  docker pull docker.io/ansibleplaybookbundle/apb-base
 
   ```
 
