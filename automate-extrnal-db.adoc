@@ -1,7 +1,7 @@
 ## Provisioning External Databases
 
-In previous lab we created an pipeline to deploy our Catalog service and Web UI to *CoolStore STAGE* project. The Catalog 
-service uses a MySQL database which is deployed on in a pod running in the same project. You can click on the **Catalog** 
+In previous lab we created a pipeline to deploy our Catalog service and Web UI to *CoolStore STAGE* project. The Catalog 
+service uses a MySQL database which is deployed as a pod running in the same project. You can click on the **Catalog** 
 in the left sidebar and then on **Databases** and **MySQL** to see the MySQL images that are provided by OpenShift which 
 are all deployed as containers. 
 
@@ -53,18 +53,18 @@ it throughout this lab to build and deploy your APB.
 The first step is to prepare your APB’s directory structure and spec file before you can build and deploy it. Create an APB project using the APB CLI:
 
 [source,shell,role=copypaste]
-```
+----
 cd ~
 apb init mysql-digital-ocean-apb --bindable
-```
+----
 
 NOTE: The `mysql-digital-ocean-apb` is an arbitrary name that we have chosen 
 in this lab as the name of the APB that will provision a MySQL database on 
 DigitalOcean.
 
-The `apb init`` command creates the required skeleton directory structure and a few required files (for example, the apb.yml spec file) for the APB.
+The `apb init` command creates the required skeleton directory structure and a few required files (for example, the apb.yml spec file) for the APB.
 
-```
+----
 mysql-digital-ocean-apb/
   ├── Dockerfile
   ├── Makefile
@@ -79,22 +79,22 @@ mysql-digital-ocean-apb/
       └── deprovision.yml
       └── bind.yml
       └── unbind.yml
-```
+----
 
 Take a look at the APB spec which defines the outline of the APB and metadata like name, version and parameters such as a database name 
 that you want users to enter when ordering the APB in order to customize its behavior. 
 
 [source,shell,role=copypaste]
-```
+----
 cd mysql-digital-ocean-apb
 cat apb.yml
-```
+----
 
 Run the following to replace `apb.yml` in order to add all the parameters such as database name, DigitalOcean region, 
 etc as well as define database server sizes (small, medium and large):
 
-[source,shell,role=copypaste]
-```
+[source,bash,role=copypaste]
+----
 cat <<'EOF' > apb.yml
 _params: &_params
   - name: service_name
@@ -171,7 +171,7 @@ plans:
       cost: $40.00 monthly
     parameters: *_params
 EOF
-```
+----
 
 An action for an APB is the command that the APB is run with and is defined by the https://www.openservicebrokerapi.org[Open Service Broker API]. The standard actions are:
 
@@ -201,9 +201,9 @@ http://docs.ansible.com/ansible/latest/modules/digital_ocean_module.html[Digital
 Copy the playbooks into your APB directory:
 
 [source,shell,role=copypaste]
-```
+----
 \cp -rf ~/support/mysql-digital-ocean-apb/{playbooks,roles} . 
-```
+----
 
 NOTE: `\cp` is used to disable the linux alias so that you don't have to confirm an overwrite for every single file.
 
@@ -222,7 +222,7 @@ Run the following to replace the `Dockerfile` with the one that includes the
 required dependencies:
 
 [source,shell,role=copypaste]
-```
+----
 cat <<'EOF' > Dockerfile
 FROM openshift3/apb-base:v3.9
 
@@ -247,23 +247,23 @@ USER apb
 ENV ANSIBLE_HOST_KEY_CHECKING false
 
 EOF
-```
+----
 
 Build the APB::
 
 [source,shell,role=copypaste]
-```
+----
 apb build
-```
+----
 
 It will take a little while till the APB container image is built. After it finishes, you would see something like:
 
 [source,shell]
-```
+----
 Finished writing dockerfile.
 Building APB using tag: [mysql-digital-ocean-apb]
 Successfully built APB image: mysql-digital-ocean-apb
-```
+----
 
 The APB is ready know and the image is stored in your local docker daemon. In 
 order to use the APB in OpenShift, you also need to add it to OpenShift service 
@@ -277,27 +277,27 @@ Log in to OpenShift as admin using OpenShift CLI:
 * Admin Password: `{{OPENSHIFT_ADMIN_PASSWORD}}`
 
 [source,shell,role=copypaste]
-```
+----
 oc login -u {{OPENSHIFT_ADMIN_USER}} -p {{OPENSHIFT_ADMIN_PASSWORD}}
-```
+----
 
 And then publish your APB to OpenShift:
 
 CAUTION: Replace `GUID` with the guid provided to you.
 
 [source,shell,role=copypaste]
-```
+----
 apb push --registry-route {{ OPENSHIFT_REGISTRY }}
-```
+----
 
 You should see something like:
 
 [source,shell]
-```
+----
 ...
 Successfully bootstrapped Ansible Service Broker
 Successfully relisted the Service Catalog
-```
+----
 
 Ansible playbooks inside your APB need DigitalOcean API Key in order to authenticate against 
 DigitalOcean and create servers. The OpenShift admin has already defined an 
@@ -370,26 +370,26 @@ You can also take a look at the Ansible logs as they getting executed. First fin
 name where the APB is running:
 
 [source,shell,role=copypaste]
-```
+----
 oc get project -l apb-fqname=localregistry-mysql-digital-ocean-apb
 oc project localregistry-mysql-digital-ocean-apb-prov-NNNNN
-```
+----
 
 Then see the logs from the APB pod. Note that you should replace your own project and pod name 
 in the following commands:
 
 [source,shell,role=copypaste]
-```
+----
 oc get pods -n localregistry-mysql-digital-ocean-apb-prov-NNNNN
 oc logs -f apb-NNNNNNNNN-NNNN-NNNN-NNNN-NNNNNNNNN 
-```
+----
 
 You won't need the admin user anymore, so log back in as the `{{ OPENSHIFT_USER }}` user:
 
 [source,shell,role=copypaste]
-```
+----
 oc login -u {{ OPENSHIFT_USER }}
-```
+----
 
 You can check is everything is ready by expanding services under **Provisioned Services**
 
@@ -432,13 +432,13 @@ Click on **Actions** > **Edit** to modify the configmap and use the environment 
 that come from the APB binding (secret). Paste the following into the configmap and click on **Save**.
 
 [source,shell,role=copypaste]
-```
+----
 spring.datasource.url=jdbc:mysql://${APB_DB_SERVICE_NAME}:${APB_DB_SERVICE_PORT}/${APB_DB_NAME}?useSSL=false
 spring.datasource.driver-class-name=com.mysql.jdbc.Driver
 spring.datasource.username=${APB_DB_USER}
 spring.datasource.password=${APB_DB_PASSWORD}
 spring.jpa.hibernate.ddl-auto=create
-```
+----
 
 image::devops-externaldb-config-after.png[Catalog Configuration]
 

@@ -96,7 +96,7 @@ Change to working directory to the `cd-infra` repository working copy:
 
 [source,shell,role=copypaste]
 ----
-cd cd-infra
+cd ~/cd-infra
 ----
 
 Create a Jenkinsfile with the following content for creating the PROD environment:
@@ -221,9 +221,9 @@ What you can do instead is to use a handy tool called `skopeo` which can inspect
 between compliant image registries without the need for a Docker Daemon.
 
 
-All that you need to move a container image from one registry to the other is to download `skopeo` and run this command:
+All that is needed to move a container image from one registry to the other is to download `skopeo` and run this command:
 
-[source,shell,role=copypaste]
+[source,shell]
 ----
 skopeo copy docker://source-registry/myimage docker://dest-registry:myimage --src-creds user:pwd --dest-creds user:pwd
 ----
@@ -239,6 +239,11 @@ git add Jenkinsfile.create-prod
 git commit -m "create prod pipeline added"
 git push origin master
 ----
+
+NOTE: In case you edited the pipeline in a previous chapter from within the Gogs UI, the previous command will
+fail. You need to pull down the changes and merge them. Use `git pull`
+
+You should see now 3 pipelines in your `cd-infra` repository.
 
 image::devops-prod-git.png[Pipelines]
 
