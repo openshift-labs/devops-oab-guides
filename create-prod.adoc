@@ -177,7 +177,7 @@ pipeline {
 
               timeout(time: 30, unit: 'MINUTES') {
                 def status = ""
-                while (status != "ProvisionedSuccessfully1") {
+                while (status != "ProvisionedSuccessfully") {
                   status = openshift.selector("serviceinstance", "catalog-digitalocean-mysql-instance").object().status.conditions[0].reason
                   echo "Waiting for MySQL to be ready on Digital Ocean... [status=${status}]"
                   sleep 10
