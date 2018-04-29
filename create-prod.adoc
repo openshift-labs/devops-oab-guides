@@ -247,8 +247,6 @@ You should see now 3 pipelines in your `cd-infra` repository.
 
 image::devops-prod-git.png[Pipelines]
 
-
-
 ### Create the PROD OpenShift Pipeline
 
 Go to the OpenShift web console (development cluster) abd the *CI/CD* project. Click on
@@ -329,3 +327,8 @@ image::devops-prod-catalog-image.png[Catalog Image]
 Click on the **prod/catalog** image to the see the specific version that is deployed.
 
 image::devops-prod-catalog-image-version.png[Catalog Image Version]
+
+You can't access the DigitalOcean dashboard but if you could, you would see that the production MySQL database 
+droplet is provisioned on DigitalOcean right near the stage database.
+
+image::devops-prod-digitaloceal-prod.png[DigitalOcean Dashboard]

@@ -395,6 +395,12 @@ You can check is everything is ready by expanding services under **Provisioned S
 
 image::devops-externaldb-open-service.png[Expand service view]
 
+You can't access the DigitalOcean dashboard but if you could, you would see that a MySQL database droplet is 
+provisioned and ready to be used:
+
+image::devops-externaldb-digitaloceal-stage.png[DigitalOcean Dashboard]
+
+
 When the secret containing the MySQL database credentials is created for you, you will see the **Delete** 
 and **View Secret** links being visible. If those are not present, provisioning and binding is not complete 
 yet. 
