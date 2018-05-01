@@ -332,3 +332,11 @@ You can't access the DigitalOcean dashboard but if you could, you would see that
 droplet is provisioned on DigitalOcean right near the stage database.
 
 image::devops-prod-digitaloceal-prod.png[DigitalOcean Dashboard]
+
+{% if DIGITALOCEAN_DASHBOARD != '' %}
+
+Use the the custom DigitalOcean dashboard we have built for you to see the MySQL 
+virtual machines in DigitalOcean without logging into DigitalOcean. Note that you can 
+see all databases from stage and production environments of all lab participants: {{DIGITALOCEAN_DASHBOARD}}
+
+{% endif %}

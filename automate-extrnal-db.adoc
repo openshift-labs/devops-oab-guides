@@ -400,6 +400,13 @@ provisioned and ready to be used:
 
 image::devops-externaldb-digitaloceal-stage.png[DigitalOcean Dashboard]
 
+{% if DIGITALOCEAN_DASHBOARD != '' %}
+
+We have built a custom dashboard that let's you see the MySQL virtual machines in DigitalOcean 
+without logging into DigitalOcean. Take a look here to see your MySQL database as well as 
+other lab participants' databases while they are being provisioned: {{DIGITALOCEAN_DASHBOARD}}
+
+{% endif %}
 
 When the secret containing the MySQL database credentials is created for you, you will see the **Delete** 
 and **View Secret** links being visible. If those are not present, provisioning and binding is not complete 

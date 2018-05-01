@@ -25,6 +25,7 @@ vars:
   PROJECTS_EXIST: "true"
   PROD_USERNAME: "student"
   LABS_GITHUB_ACCOUNT: "openshift-labs"
+  DIGITALOCEAN_DASHBOARD: "http://digitalocean.openshiftworkshop.com"   # leave empty if not available
 
 modules:
   activate:

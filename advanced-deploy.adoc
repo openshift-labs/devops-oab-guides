@@ -141,7 +141,8 @@ pipeline {
           openshift.withProject(env.PROD_PROJECT) {
             echo "Rolling back to current release ${activeSvc} and deleting the canary"
             openshift.set("route-backends", "catalog", "${activeSvc}=100%")
-            openshift.selector(["dc/${canarySvc}", "svc/${canarySvc}"]).delete()
+            openshift.selector("dc", "${canarySvc}").delete()
+            openshift.selector("svc", "${canarySvc}").delete()
           }
         }
       }
@@ -152,7 +153,8 @@ pipeline {
           openshift.withProject(env.PROD_PROJECT) {
             echo "Rolling back to current release ${activeSvc} and deleting the canary"
             openshift.set("route-backends", "catalog", "${activeSvc}=100%")
-            openshift.selector(["dc/${canarySvc}", "svc/${canarySvc}"]).delete()
+            openshift.selector("dc", "${canarySvc}").delete()
+            openshift.selector("svc", "${canarySvc}").delete()
           }
         }
       }
