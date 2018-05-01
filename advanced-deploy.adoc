@@ -23,8 +23,32 @@ image::devops-zerodowntime-canary.png[Canary release]
 
 We are going to release a new version of our application using a Canary release.
 
-You can run the **catalog-release** pipeline once more, in order to simulate as if you have changes 
-in the Catalog service and need to release a new version.
+There have been reports that the product data hasn't been clean and sometimes there 
+are white spaces before or after the names. Let's fix that in the Catalog service 
+by trimming the product names before returning them.
+
+Go the Git server web and on the `src/main/java/com/redhat/cloudnative/catalog/CatalogController.java`:
+
+[blue]`\http://{{GIT_HOSTNAME}}/{{GIT_USER}}/catalog-spring-boot/src/master/src/main/java/com/redhat/cloudnative/catalog/CatalogController.java`
+
+Click on the pencil (edit) icon and then add the following line before the `return` line:
+
+[source,java,role=copypaste]
+----
+  list.stream().forEach( p -> p.setName(p.getName() == null ? null : p.getName().trim()));
+----
+
+Click on **Commit Changes** button to commit the code to the git repository.
+
+Go to the OpenShift Web Console in the development environment and inside the **CI/CD* project, 
+to **Builds** > **Pipelines**. You should see that the **catalog-build** pipeline is automatically 
+triggered and is building the change your just committed to the git repository.
+
+You can test the change in the **CoolStore DEV** project and when ready, go back to the **CI/CD* project 
+and start the **catalog-release* pipeline in order to make a release of the change.
+
+After the release is done, a new version (version 1.0.1 if you have followed the instructions) 
+of the Catalog service is created which you can deploy to production in the following sections.
 
 ### Configure Canary Release Pipeline for Catalog Service
 
