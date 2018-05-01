@@ -1,4 +1,4 @@
-## Zero-downtime Deployments in Production
+## Canary Deploy to Production
 
 In this lab you will learn how to roll out new releases to production without impacting the users of your application.
 

@@ -1,4 +1,4 @@
-## Create DEV Deployment Environment
+## Deploy to Dev Environment
 
 In this lab you will get familiar with OpenShift Web Console and OpenShift CLI and gain some experience 
 interacting with an OpenShift cluster. You will also learn about deployment environments in 

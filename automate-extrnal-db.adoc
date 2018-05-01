@@ -1,4 +1,4 @@
-## Provisioning External Databases
+## Provisioning and Using External Databases
 
 In previous lab we created a pipeline to deploy our Catalog service and Web UI to *CoolStore STAGE* project. The Catalog 
 service uses a MySQL database which is deployed as a pod running in the same project. You can click on the **Catalog** 

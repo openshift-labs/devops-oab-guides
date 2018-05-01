@@ -1,4 +1,4 @@
-## Introduction
+## Introduction to DevOps
 
 In this section we will give an overview of DevOps, Continuous Integration and Continuous Delivery concepts which are required throughout this session.
 

@@ -1,21 +1,19 @@
 modules:
   devops-intro:
-    name: DevOps Introduction  
+    name: Intro to DevOps
   create-dev:
-    name: Create DEV Environment
+    name: Deploy to Dev Environment
   add-pipeline:
     name: Automate Build and Deployment
   add-webhook:
     name: Run Pipeline on Every Change
   create-stage:
-    name: Release to STAGE Environment
+    name: Release to Stage Environment
   automate-extrnal-db:
-    name: Provisoning External Databases
+    name: Use an External Databases
   create-prod:
-    name: Promote Builds to Production
-  release-prod-same-cluster:
-    name: Promote Builds to Production
+    name: Promote to Production Environment
   advanced-deploy:
-    name: Advanced Zerodowntime Deploy
+    name: Canary Deploy to Production
   env-info:
     name: "Appendix: Lab Environment Info"

@@ -1,4 +1,4 @@
-## Promote Builds to Production
+## Promote to Production Environment
 
 
 You have the CoolStore application tested and verified in the staging environment and in this

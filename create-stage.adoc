@@ -1,4 +1,4 @@
-## Release Catalog Service to STAGE Environment
+## Release Catalog Service to Stage Environment
 
 In previous labs, you built and deployed the CoolStore application with the Catalog and Web containers 
 into the *Coolstore DEV* project. The development phase of application generally involves many iterations 
