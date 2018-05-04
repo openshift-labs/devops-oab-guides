@@ -102,7 +102,7 @@ _params: &_params
     description: The name of the service. Used to name droplet and OpenShit service
     type: string
     default: domysql
-    pattern: "^[a-zA-Z0-9]+[a-zA-Z0-9]*[a-zA-Z0-9]+$"
+    pattern: "^[a-z0-9]+[a-z0-9]*[a-z0-9]+$"
     required: true
   - name: region
     title: Target region
