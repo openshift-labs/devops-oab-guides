@@ -22,20 +22,20 @@ image::devops-labenv-arch.png[GUID Grabber, width=440]
 
 **WORKSTATION**
 
-Hostname: [blue]`workstation-GUID.generic.opentlc.com`
+Hostname: `{{ WORKSTATION_HOSTNAME }}`
 
 Open a Terminal on the lab laptop and open a remote shell into the Workstation via 
 the following command (no user na password needed):
 
 [source,shell,role=copypaste]
 ----
-$ ssh workstation-GUID.generic.opentlc.com
+$ ssh {{ WORKSTATION_HOSTNAME }}
 ----
 
 
 **OPENSHIFT DEV CLUSTER**
 
-Address: [blue]`\{{ OPENSHIFT_URL }}` + 
+Address: {{ OPENSHIFT_URL }} +
 Image Registry: [blue]`{{ OPENSHIFT_REGISTRY }}` + 
 
 Username: `{{ OPENSHIFT_USER }}` + 
@@ -44,7 +44,7 @@ Password: `{{ OPENSHIFT_PASSWORD }}` +
 
 **OPENSHIFT PROD CLUSTER**
 
-Address: [blue]`\{{ PROD_URL }}` + 
+Address: {{ PROD_URL }} + 
 Image Registry: [blue]`{{ PROD_REGISTRY }}` + 
 
 Username: `{{ PROD_USER }}` + 
@@ -53,14 +53,14 @@ Password: `{{ PROD_PASSWORD }}` +
 
 **GIT SERVER**
 
-Web: [blue]`\http://{{ GIT_HOSTNAME }}` + 
+Web: http://{{ GIT_HOSTNAME }}
 
 Username: `{{ GIT_USER }}` + 
 Password: `{{ GIT_PASSWORD }}` + 
 
 **NEXUS MAVEN REPOSITORY**
 
-Web: [blue]`\{{ NEXUS_EXTERNAL_URL }}`
+Web: {{ NEXUS_EXTERNAL_URL }}
 
 
 **OPENSHIFT DOCS**

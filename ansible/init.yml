@@ -182,15 +182,15 @@
         workshopper_content_url_prefix: "https://raw.githubusercontent.com/openshift-labs/devops-oab-guides/master"
         workshopper_workshop_urls: "https://raw.githubusercontent.com/openshift-labs/devops-oab-guides/master/_summit-devops-lab.yml"
         workshopper_env_vars:
-          OPENSHIFT_URL: "{{ openshift_master }}"
+          OPENSHIFT_URL: "https://{{ apps_hostname_suffix | replace('devapps', 'masterdev') }}:8443"
           OPENSHIFT_REGISTRY: "docker-registry-default.{{ apps_hostname_suffix }}"
-          PROD_URL: "{{ openshift_master | replace('masterdev', 'masterprod') }}"
+          PROD_URL: "https://{{ apps_hostname_suffix | replace('devapps', 'masterprod') }}:8443"
           PROD_REGISTRY: "docker-registry-default.{{ apps_hostname_suffix | replace('devapps', 'apps') }}"
           OPENSHIFT_DOCS_BASE: "https://docs.openshift.com/container-platform/3.9"
           NEXUS_EXTERNAL_URL: "http://nexus-lab-infra.{{ apps_hostname_suffix }}"
           GIT_HOSTNAME: "gogs-lab-infra.{{ apps_hostname_suffix }}"
-          GIT_SERVER_INTERNAL_URL: "http://gogs.lab-infra.svc:3000"
           DIGITALOCEAN_DASHBOARD: "http://digitalocean.openshiftworkshop.com"
+          WORKSTATION_HOSTNAME: "{{ apps_hostname_suffix | replace('devapps', 'workstation') }}"
       tags: guides
 
     # create projects

@@ -26,6 +26,7 @@ vars:
   PROD_USERNAME: "student"
   LABS_GITHUB_ACCOUNT: "openshift-labs"
   DIGITALOCEAN_DASHBOARD: "http://digitalocean.openshiftworkshop.com"   # leave empty if not available
+  WORKSTATION_HOSTNAME: "workstation-GUID.generic.opentlc.com"
 
 modules:
   activate:
