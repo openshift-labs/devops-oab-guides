@@ -89,7 +89,7 @@ oc new-app jenkins-persistent -n cicd{{PROJECT_SUFFIX}}
 
 In order to honor https://en.wikipedia.org/wiki/Infrastructure_as_Code[infrastructure as code] principle, we're going to store all the pipeline definitions and OpenShift resources definitions we will use in a git server.
 
-When you log into Gogs you will notice there is an empty repository already created for you to store the pipeline definitions. This project is called `cd-infra`:
+When you log into Gogs you will notice there is an empty repository already created for you to store the pipeline definitions. This project is called `cd-infra`: +
 http://{{GIT_HOSTNAME}}/{{GIT_USER}}/cd-infra.git
 
 image::devops-pipeline-gogs-cdinfra.png[Gogs project list]
@@ -194,7 +194,7 @@ You should now see your file in Gogs.
 image::devops-pipeline-gogs-cdinfra-files.png[cd-infra project in Gogs]
 
 
-#### Create your Pipeline definition on OpenShift
+#### Create your Pipeline Definition on OpenShift
 
 Create the OpenShift pipeline definition to use the Jenkins file. This is a regular OpenShift BuildConfig with a *JenkinsPipeline* strategy.
 

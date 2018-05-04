@@ -266,7 +266,8 @@ the **catalog-release** pipeline.
 image::devops-stage-released.png[Stage released]
 
 As the pipeline execution progresses, you will see the latest release gets deployed in the *CoolStore STAGE* 
-environment. 
+environment. After the pipeline finishes, check out Git and Nexus once more and verify that a new release 
+is created.
 
 Also, you might have noticed that the pipeline for *catalog-build* has also been triggered, this is because as
 part of the release process we update the version in the maven `pom.xml`, so this new code will be also

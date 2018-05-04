@@ -225,7 +225,15 @@ skopeo copy docker://source-registry/myimage docker://dest-registry:myimage --sr
 Neat right? You can see why we chose to use `skopeo` over `docker` for promoting Catalog and Web container images to the
 product cluster.
 
-Add the Jenkinsfile to `cd-infra` git repository:
+First pull the latest changes from the `cd-infra` git repository:
+
+[source,shell,role=copypaste]
+----
+git pull origin master
+----
+
+
+And then add the Jenkinsfile to the `cd-infra` git repository:
 
 [source,shell,role=copypaste]
 ----
