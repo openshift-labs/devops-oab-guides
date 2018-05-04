@@ -19,9 +19,7 @@ with an application.
 
 You can use the following credentials to access the production OpenShift cluster.
 
-CAUTION: Replace `GUID` with the guid provided to you.
-
-* Production OpenShift Web Console: [blue]`\{{PROD_URL}}`
+* Production OpenShift Web Console: {{PROD_URL}}
 * Production OpenShift User: `{{PROD_USER}}`
 * Production OpenShift Password: `{{PROD_PASSWORD}}`
 
@@ -46,8 +44,6 @@ be used in Jenkins and the pipeline via the Jenkins Credentials, the same way as
 In addition to username and password, OpenShift provides an authentication token which can be used by users and
 APIs to interact with OpenShift. Log into production OpenShift using your production credentials:
 
-CAUTION: Replace `GUID` with the guid provided to you.
-
 [source,shell,role=copypaste]
 ----
 oc login {{PROD_URL}}
@@ -68,8 +64,6 @@ use in the pipeline in the next section.
 
 You can now login back into the development OpenShift cluster. All interactions with the production cluster in
 the following sections will take place via the pipeline.
-
-CAUTION: Replace `GUID` with the guid provided to you.
 
 [source,shell,role=copypaste]
 ----
@@ -253,8 +247,6 @@ Go to the OpenShift web console (development cluster) abd the *CI/CD* project. C
 *Add to Project* > *Import YAML/JSON* and paste the following YAML file to create a pipeline
 that uses the `Jenkinsfile.create-prod` from the `cd-infra` git repository:
 
-CAUTION: Replace `GUID` with the guid provided to you.
-
 [source,shell,role=copypaste]
 ----
 apiVersion: build.openshift.io/v1
@@ -310,9 +302,7 @@ image::devops-prod-pipeline-logs.png[Pipeline Logs in Jenkins Waiting for MySQL]
 As the pipeline progresses, log into the production OpenShift Web Console and verify that the CoolStore application is
 deployed into production. 
 
-CAUTION: Replace `GUID` with the guid provided to you.
-
-* Production OpenShift Web Console: [blue]`\{{PROD_URL}}`
+* Production OpenShift Web Console: {{PROD_URL}}
 * Production OpenShift User: `{{PROD_USER}}`
 * Production OpenShift Password: `{{PROD_PASSWORD}}`
 

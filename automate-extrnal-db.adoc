@@ -283,8 +283,6 @@ oc login -u {{OPENSHIFT_ADMIN_USER}} -p {{OPENSHIFT_ADMIN_PASSWORD}}
 
 And then publish your APB to OpenShift:
 
-CAUTION: Replace `GUID` with the guid provided to you.
-
 [source,shell,role=copypaste]
 ----
 apb push --registry-route {{ OPENSHIFT_REGISTRY }}
@@ -338,8 +336,6 @@ All parameters is this APB are mandatory. You can choose in which DigitalOcean r
 your database to be provisioned. Default `sfo1` is close so we'll use that. 
 
 Enter these values and then click on **Next**:
-
-CAUTION: Replace `GUID` with the guid provided to you.
 
 * Database service name: `catalogdbGUID`
 * Database user password: `openshiftrocks`

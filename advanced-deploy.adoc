@@ -29,7 +29,7 @@ by trimming the product names before returning them.
 
 Go the Git server web and on the `src/main/java/com/redhat/cloudnative/catalog/CatalogController.java`:
 
-[blue]`\http://{{GIT_HOSTNAME}}/{{GIT_USER}}/catalog-spring-boot/src/master/src/main/java/com/redhat/cloudnative/catalog/CatalogController.java`
+http://{{GIT_HOSTNAME}}/{{GIT_USER}}/catalog-spring-boot/src/master/src/main/java/com/redhat/cloudnative/catalog/CatalogController.java
 
 Click on the pencil (edit) icon and then add the following line before the `return` line:
 
@@ -204,8 +204,6 @@ image::devops-zerodowntime-gogs-pipelines.png[Pipelines in Gogs]
 Now, let's create a new Pipeline build in OpenShift that will use this Jenkins file.
 
 Like before, on you `cicd{{PROJECT_SUFFIX}}` project, click on *Add to project -> Import YAML/JSON* menu and enter the following definition:
-
-CAUTION: Replace `GUID` with the guid provided to you.
 
 [source,shell,role=copypaste]
 ----

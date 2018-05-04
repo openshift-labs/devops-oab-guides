@@ -90,13 +90,11 @@ oc new-app jenkins-persistent -n cicd{{PROJECT_SUFFIX}}
 In order to honor https://en.wikipedia.org/wiki/Infrastructure_as_Code[infrastructure as code] principle, we're going to store all the pipeline definitions and OpenShift resources definitions we will use in a git server.
 
 When you log into Gogs you will notice there is an empty repository already created for you to store the pipeline definitions. This project is called `cd-infra`:
-[blue]`\http://{{GIT_HOSTNAME}}/{{GIT_USER}}/cd-infra.git`
+http://{{GIT_HOSTNAME}}/{{GIT_USER}}/cd-infra.git
 
 image::devops-pipeline-gogs-cdinfra.png[Gogs project list]
 
 Now, clone the `cd-infra` git repository into your workspace as we will add the necessary pipelines:
-
-CAUTION: Replace `GUID` with the guid provided to you.
 
 [source,shell,role=copypaste]
 ----
@@ -112,8 +110,6 @@ cd cd-infra
 ----
 
 We are going to create a Jenkinsfile to build and deploy our Catalog application into the DEV environment.
-
-CAUTION: Replace `GUID` with the guid provided to you.
 
 [source,shell,role=copypaste]
 ----
@@ -205,8 +201,6 @@ Create the OpenShift pipeline definition to use the Jenkins file. This is a regu
 Click on 
 *Add to Project* > *Import YAML/JSON* and paste the following YAML file to create a pipeline 
 that uses the `Jenkinsfile.catalog-build` from the `cd-infra` git repository
-
-CAUTION: Replace `GUID` with the guid provided to you.
 
 [source,shell,role=copypaste]
 ----

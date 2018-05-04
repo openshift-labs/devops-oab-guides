@@ -9,8 +9,6 @@ software delivery lifecycle and deploy the application into these deployment env
 The first thing we want to do to ensure that the `oc` command line tools was installed and successfully 
 added to your path. In order to login, you can use the `oc` command and then specify the server that you want to authenticate to. Issue the following command:
 
-CAUTION: Replace `GUID` with the guid provided to you.
-
 [source,shell,role=copypaste]
 ----
 oc login {{OPENSHIFT_URL}}
@@ -56,7 +54,7 @@ oc project dev{{PROJECT_SUFFIX}}
 ### OpenShift Web Console
 
 OpenShift ships with a web-based console that will allow users to perform various tasks via a browser. To 
-get a feel for how the web console works, open your browser and go to the following URL: 
+get a feel for how the web console works, open your browser and go to the following URL: +
 {{OPENSHIFT_URL}}
 
 Since the security certificates used for securing your OpenShift cluster are self-generated and 
@@ -92,8 +90,6 @@ front-end team:
 oc new-app -f https://raw.githubusercontent.com/{{ LABS_GITHUB_ACCOUNT }}/devops-oab-labs/master/openshift/web-template.yaml
 ----
 
-CAUTION: Replace `GUID` with the guid provided to you.
-
 The source code for the Catalog service is available in the following git repository: +
 http://{{GIT_HOSTNAME}}/{{GIT_USER}}/catalog-spring-boot.git
 
@@ -116,8 +112,6 @@ a MySQL database on OpenShift at once.
 
 Deploy the Catalog service into **CoolStore DEV** environment using the template that builds the Catalog container 
 image from source code via Source-to-Image capability and deploys it afterwards:
-
-CAUTION: Replace `GUID` with the guid provided to you.
 
 [source,shell,role=copypaste]
 ----
