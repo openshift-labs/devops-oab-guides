@@ -173,6 +173,11 @@ Go to *Builds* > *Pipelines* and *Start Pipeline* manually. You will now see the
 
 image::devops-stage-pipeline-release.png[Release Pipeline]
 
+Did you notice that while the **catalog-release** pipeline is running, the **catalog-build** is also started 
+running? The reason for that is that during the release process, `pom.xml` is modified to increase 
+the version number and is pushed back to the git repository. You wanted **catalog-build** pipeline to 
+run on every change that takes place in the git repository, right?
+
 After the pipeline is completed successfully (all green, yaay!), go the git repository in your browser to 
 review the git release that is created:
 
@@ -191,12 +196,6 @@ CAUTION: Replace `GUID` with the guid provided to you.
 
 Nexus Maven Repository: +
 [blue]`\{{NEXUS_EXTERNAL_URL}}/#browse/browse:maven-all-public:com%2Fredhat%2Fcloudnative%2Fcatalog`
-
-
-Did you notice that while the **catalog-release** pipelne was running, the **catalog-build** also started 
-running? The reason for that is that during the release process, `pom.xml` is modified to increase 
-the version number and is pushed back to the git repository. You wanted **catalog-build** pipeline to 
-run on every change that takes place in the git repository, right?
 
 image::devops-stage-nexus.png[Nexus released artifact]
 
