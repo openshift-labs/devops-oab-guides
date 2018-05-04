@@ -23,7 +23,7 @@ certificate would be signed by a standard CA (eg: Thawte, Verisign, StartSSL, et
 corporate-standard CA that you already have installed on your system.
 
 Once you issue the `oc login` command, you will be prompted for the username and password 
-combination for your user account. Replace XX with the username given to you by the instructor:
+combination for your user account. 
 
 * Username: `{{OPENSHIFT_USER}}`
 * Password: `{{OPENSHIFT_PASSWORD}}`
@@ -33,7 +33,7 @@ project allows a community of users (or a user) to organize and manage their con
 isolation from other communities. Each project has its own resources, policies 
 (who can or cannot perform actions), and constraints (quotas and limits on resources, etc). 
 
-Projects act as a "wrapper" around all the application services and endpoints you 
+Projects act as a wrapper around all the application services and endpoints you 
 (or your teams) are using for your work. You can see the list of projects 
 you have access to using the following command:
 
@@ -46,7 +46,7 @@ There a few projects created for you in order to use during the following labs. 
 using OpenShift CLI, you can specify a project as the active project which will be used 
 as the default project when running OpenShift CLI commands. 
 
-Specify the DEV project as the active project:
+Specify the `dev` project as the active project:
 
 [source,shell,role=copypaste]
 ----
@@ -57,7 +57,7 @@ oc project dev{{PROJECT_SUFFIX}}
 
 OpenShift ships with a web-based console that will allow users to perform various tasks via a browser. To 
 get a feel for how the web console works, open your browser and go to the following URL: 
-[blue]`\{{OPENSHIFT_URL}}`
+{{OPENSHIFT_URL}}
 
 Since the security certificates used for securing your OpenShift cluster are self-generated and 
 self-signed, your browser will not trust them by default and will show a security warning similar to the following:
@@ -95,7 +95,7 @@ oc new-app -f https://raw.githubusercontent.com/{{ LABS_GITHUB_ACCOUNT }}/devops
 CAUTION: Replace `GUID` with the guid provided to you.
 
 The source code for the Catalog service is available in the following git repository: +
-[blue]`\http://{{GIT_HOSTNAME}}/{{GIT_USER}}/catalog-spring-boot.git`
+http://{{GIT_HOSTNAME}}/{{GIT_USER}}/catalog-spring-boot.git
 
 You should build a container image for the Catalog as well in order to be able to deploy it. You can 
 store the Catalog image in the **CI/CD** project as well (similar to Web UI image) so that 
