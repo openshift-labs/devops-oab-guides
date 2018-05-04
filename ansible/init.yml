@@ -184,7 +184,7 @@
         workshopper_env_vars:
           OPENSHIFT_URL: "{{ openshift_master }}"
           OPENSHIFT_REGISTRY: "docker-registry-default.{{ apps_hostname_suffix }}"
-          PROD_URL: "{{ openshift_master | replace('masterdev', 'masterprod') }}
+          PROD_URL: "{{ openshift_master | replace('masterdev', 'masterprod') }}"
           PROD_REGISTRY: "docker-registry-default.{{ apps_hostname_suffix | replace('devapps', 'apps') }}"
           OPENSHIFT_DOCS_BASE: "https://docs.openshift.com/container-platform/3.9"
           NEXUS_EXTERNAL_URL: "http://nexus-lab-infra.{{ apps_hostname_suffix }}"
