@@ -457,8 +457,8 @@ Note that the `APB_DB_SERVICE_NAME`, `APB_DB_USER`, `APB_DB_NAME`, `APB_DB_SERVI
 `APB_DB_PASSWORD` environment variables are injected into the Catalog pod by the secret that is 
 created during the provisioning of the **Digital Ocean MySQL APB**. 
 
-You should redeploy the Catalog service so that it uses the new configmap content as configuration. In the left 
-sidebar, click on **Applications** > **Deployments** > **catalog** and then click on the **Deploy** button.
+Catalog pod should automatically redeploy to use the new configmap content as configuration but you can also redeploy it by going 
+to the left sidebar, and then clicking on **Applications** > **Deployments** > **catalog** and then on the **Deploy** button.
 
 Now you have connected your application with external database running in DigitalOcean.
 
