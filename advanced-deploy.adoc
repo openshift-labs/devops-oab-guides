@@ -15,7 +15,7 @@ image::devops-zerodowntime-bluegreen.png[Blue/Green deployments]
 
 *Canary releases* are a way of sending out a new version of your application into production that plays the role of a “canary” to get an idea of how it will perform (integrate with other apps, CPU, memory, disk usage, etc). It’s another release strategy that can mitigate the fact that regardless of the immense level of testing you do in lower environments you will still have some bugs in production. Canary releases let you test the waters before pulling the trigger on a full release. 
 
-Similarly to a Blue/Green deployment, you'll have two versions of your application deployed, but in this scenario, both will accept load indistincly. The amount of load you send to the Canary initially is very low, but one can increase it with time to gain confidence. Eventually, the canary side will assume the 100% of the load, and the old version could be safely retired, or kept in place for a quick rollback in case required.
+Similarly to a Blue/Green deployment, you'll have two versions of your application deployed, but in this scenario, both will accept load indistinctly. The amount of load you send to the Canary initially is very low, but one can increase it with time to gain confidence. Eventually, the canary side will assume the 100% of the load, and the old version could be safely retired, or kept in place for a quick rollback in case required.
 
 A canary release is used to get faster feedback without impacting all of the users of the application so you can fail the deployment faster, or proceed cautiously.
 
@@ -23,8 +23,9 @@ image::devops-zerodowntime-canary.png[Canary release]
 
 We are going to release a new version of our application using a Canary release.
 
-There have been reports that the product data hasn't been clean and sometimes there 
-are white spaces before or after the names. Let's fix that in the Catalog service 
+There has been a bug report that the product image for the _Pebble Smart Watch_ does not show 
+correctly on the CoolStore. This has been attributed to the product data not being clean and sometimes 
+containing white spaces before or after the names. Let's fix that in the Catalog service 
 by trimming the product names before returning them.
 
 Go the Git server web and on the `src/main/java/com/redhat/cloudnative/catalog/CatalogController.java`:
@@ -35,20 +36,20 @@ Click on the pencil (edit) icon and then add the following line before the `retu
 
 [source,java,role=copypaste]
 ----
-  list.stream().forEach( p -> p.setName(p.getName() == null ? null : p.getName().trim()));
+list.stream().forEach( p -> p.setName(p.getName() == null ? null : p.getName().trim()));
 ----
 
 Click on **Commit Changes** button to commit the code to the git repository.
 
-Go to the OpenShift Web Console in the development environment and inside the **CI/CD* project, 
+Go to the OpenShift Web Console in the development environment and inside the **CI/CD** project, 
 to **Builds** > **Pipelines**. You should see that the **catalog-build** pipeline is automatically 
 triggered and is building the change your just committed to the git repository.
 
 You can test the change in the **CoolStore DEV** project and when ready, go back to the **CI/CD* project 
-and start the **catalog-release* pipeline in order to make a release of the change.
+and start the **catalog-release** pipeline in order to make a release of the change.
 
-After the release is done, a new version (version 1.0.1 if you have followed the instructions) 
-of the Catalog service is created which you can deploy to production in the following sections.
+After the release is done, a new version of the Catalog service is created which you 
+can deploy to production in the following sections.
 
 ### Configure Canary Release Pipeline for Catalog Service
 
