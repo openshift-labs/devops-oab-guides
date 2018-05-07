@@ -213,6 +213,8 @@ http://{{GIT_HOSTNAME}}/{{GIT_USER}}/cd-infra/src/master/Jenkinsfile.release
 Click on the pencil icon to edit `Jenkinsfile.release` and add the following `stages` at the 
 end of the release pipeline and click on *Commit Changes* button.
 
+CAUTION: Be careful with the curly brackets! Make sure they look exactly like the following.
+
 [source,shell,role=copypaste]
 ----
 pipeline {
@@ -270,8 +272,9 @@ environment. After the pipeline finishes, check out Git and Nexus once more and 
 is created.
 
 Also, you might have noticed that the pipeline for *catalog-build* has also been triggered, this is because as
-part of the release process we update the version in the maven `pom.xml`, so this new code will be also
-deployed into our *CoolStore DEV* environment.
+part of the release process we update the version in the maven 
+http://{{ GIT_HOSTNAME }}/{{ GIT_USER }}/catalog-spring-boot/src/master/pom.xml#L6[`pom.xml`], so this new code will 
+be also deployed into our *CoolStore DEV* environment.
 
 image::devops-stage-project-overview.png[Stage project overview]
 

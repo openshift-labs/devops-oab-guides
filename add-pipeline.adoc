@@ -24,12 +24,15 @@ and reviewed like any other code.
 
 image::devops-pipeline-flow.png[Pipelines]
 
-### Set up your pipeline
+### Set Up Your Pipeline
+
+A deployment configuration in OpenShift can contain 
+{{OPENSHIFT_DOCS_BASE}}/dev_guide/deployments/basic_deployment_operations.html#triggers[triggers], which tells OpenShift to automatically redeploy the pod whenever a new image is built for that service or configuration changes.
 
 As we want the Jenkins pipeline to control when builds and deployments happen, we need to disable the ability
 on the current Deployment to automatically trigger when there is a new image or a configuration change.
 
-#### Configure manual deployments on Dev application
+#### Configure Manual Deployments on Dev Application
 
 In the *CoolStore DEV* project, click on *Applications -> Deployments* on the left sidebar menu
 and then on *catalog* deployment. Click on *Actions -> Edit* button:
@@ -40,7 +43,7 @@ Unselect the checkboxes for the Image Change trigger and for the Config change t
 
 image::devops-pipeline-deployment-triggers.png[Remove triggers]
 
-#### Create your pipeline
+#### Create Your Pipeline
 
 As pipelines provides the ability to promote applications between different stages of the delivery cycle, Jenkins, which is our Continuous Integration server that will execute our pipelines, will be deployed on a project with a Continuous Integration role. Pipelines executed in this project will have permissions to interact with all the projects modeling the different stages of our delivery cycle. 
 
@@ -76,7 +79,7 @@ We will see now Jenkins being provisioned on our project. Once provisioning is f
 
 image::devops-jenkins-deployed.png[Jenkins deployed]
 
-We could have done the same as we just did by using one single command on the OpenShift CLI. This command will deploy the service Jenkins with a persistent configuration in our **CI/CD** project. 
+We could have done the same as we just did by using one single command on the OpenShift CLI. This command will deploy the service Jenkins with a persistent configuration in your **CI/CD** project. 
 
 WARNING: If you have successfully deployed Jenkins, do NOT execute this command.
 
@@ -85,11 +88,11 @@ WARNING: If you have successfully deployed Jenkins, do NOT execute this command.
 oc new-app jenkins-persistent -n cicd{{PROJECT_SUFFIX}}
 ----
 
-#### Store your pipeline definition in Git
+#### Store Your Pipeline Definition in Git
 
 In order to honor https://en.wikipedia.org/wiki/Infrastructure_as_Code[infrastructure as code] principle, we're going to store all the pipeline definitions and OpenShift resources definitions we will use in a git server.
 
-When you log into Gogs you will notice there is an empty repository already created for you to store the pipeline definitions. This project is called `cd-infra`: +
+When you log into Gogs you will notice there is an empty repository already created for you to store the pipeline definitions. This repository is called `cd-infra`: +
 http://{{GIT_HOSTNAME}}/{{GIT_USER}}/cd-infra.git
 
 image::devops-pipeline-gogs-cdinfra.png[Gogs project list]
@@ -194,12 +197,11 @@ You should now see your file in Gogs.
 image::devops-pipeline-gogs-cdinfra-files.png[cd-infra project in Gogs]
 
 
-#### Create your Pipeline Definition on OpenShift
+#### Create Your Pipeline Definition on OpenShift
 
 Create the OpenShift pipeline definition to use the Jenkins file. This is a regular OpenShift BuildConfig with a *JenkinsPipeline* strategy.
 
-Click on 
-*Add to Project* > *Import YAML/JSON* and paste the following YAML file to create a pipeline 
+In the **CI/CD** project, click on *Add to Project* > *Import YAML/JSON* and paste the following YAML file to create a pipeline 
 that uses the `Jenkinsfile.catalog-build` from the `cd-infra` git repository
 
 [source,shell,role=copypaste]
@@ -242,6 +244,11 @@ image::devops-pipeline-started.png[Pipeline created and started]
 
 The pipeline will start automatically and execute all stages that are defined in the Jenkinsfile 
 in the git repository. After a little while, it will finish, hopefully with success.
+
+Notice that the first time you are running it takes a little while before the pipeline starts. The reason for that is 
+that you are using the built-in https://plugins.jenkins.io/kubernetes[Kubernetes Jenkins Plugin] which dynamically provisions 
+a Jenkins slave pod to run the pipeline. The dynamic provisioning allows scaling the pipeline execution to many concurrent jobs. The 
+first time that pipeline runs, it will pull the jenkins slave image from the registry and therefore it might take a little bit of time.
 
 image::devops-pipeline-finished.png[Pipeline finished]
 
