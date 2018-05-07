@@ -24,8 +24,12 @@ image::devops-zerodowntime-canary.png[Canary release]
 We are going to release a new version of our application using a Canary release.
 
 There has been a bug report that the product image for the _Pebble Smart Watch_ does not show 
-correctly on the CoolStore. This has been attributed to the product data not being clean and sometimes 
-containing white spaces before or after the names. Let's fix that in the Catalog service 
+correctly on the CoolStore.
+
+image::devops-zerodowntime-whitespace.png[White Space in Product Names, width=360px]
+
+This has been attributed to the product data not being clean and sometimes 
+containing white spaces before or after the product names. Let's fix that in the Catalog service 
 by trimming the product names before returning them.
 
 Go the Git server web and on the `src/main/java/com/redhat/cloudnative/catalog/CatalogController.java`:
@@ -39,17 +43,37 @@ Click on the pencil (edit) icon and then add the following line before the `retu
 list.stream().forEach( p -> p.setName(p.getName() == null ? null : p.getName().trim()));
 ----
 
+So the code will look like this:
+
+[source,java]
+----
+@ResponseBody
+@GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+public List<Product> getAll() {
+    Spliterator<Product> products = repository.findAll().spliterator();
+    List<Product> list = StreamSupport.stream(products, false).collect(Collectors.toList());
+    list.stream().forEach( p -> p.setName(p.getName() == null ? null : p.getName().trim()));
+    return list;
+}
+----
+
 Click on **Commit Changes** button to commit the code to the git repository.
 
 Go to the OpenShift Web Console in the development environment and inside the **CI/CD** project, 
 to **Builds** > **Pipelines**. You should see that the **catalog-build** pipeline is automatically 
 triggered and is building the change your just committed to the git repository.
 
-You can test the change in the **CoolStore DEV** project and when ready, go back to the **CI/CD* project 
-and start the **catalog-release** pipeline in order to make a release of the change.
+Verify that the issue has been fixed in the **CoolStore DEV** project by pointing your browser to 
+the Web UI route in the development environment:
 
-After the release is done, a new version of the Catalog service is created which you 
-can deploy to production in the following sections.
+image::devops-zerodowntime-whitespace-fixed.png[White Space in Product Names Fixed, width=360px]
+
+Now go to the **CI/CD** project and start the **catalog-release** pipeline in order to make a 
+release of the change to the staging environment. After the release is ready, verify that the 
+issue is fixed and works as expected in the **CoolStore STAGE** environment as well.
+
+You now have a new version of the Catalog service which is ready to go to production in a 
+controlled and risk-free manner.
 
 ### Configure Canary Release Pipeline for Catalog Service
 
@@ -59,7 +83,7 @@ Change to the `cd-infra` repository working copy on your workstation:
 
 [source,shell,role=copypaste]
 ----
-cd cd-infra
+cd ~/cd-infra
 ----
 
 
@@ -232,15 +256,16 @@ spec:
     type: JenkinsPipeline
 ----
 
-You should now see the pipeline being executed and the canary release rolling out.
+Go to **Builds -> Pipelines** and then click on **Start Pipeline** button near the **catalog-deploy-prod** pipeline 
+to start a canary release.
 
 image::devops-canary-created.png[Catalog Canary Release]
 
 As the pipeline progresses, it will ask you which version of the Catalog service you want to promote to production.
 
-image::devops-canary-input.png[Canary Release - Pick Version]
+image::devops-canary-input.png[Canary Release - Pick Version, width=560px]
 
-Pick a version and click on **Deploy**. 
+Pick the latest version that is available in your environment and click on **Deploy**. 
 
 Note that rolling back versions work the exact same way and you can pick any version to roll forward to or roll back 
 to in production. You of course need to be mindful of you data and how you deal with data versions across your application 
@@ -255,6 +280,12 @@ Take a look at the OpenShift Web Console in the production environment. You can 
 Catalog service deployed with the new version receiving 10% of the traffic.
 
 image::devops-canary-10-deployed.png[Canary Release - 10% Traffic]
+
+Point your browser to the Web UI route url in the production environment. Refresh your browser a copule of times (max 10, right?) 
+until you see the correct product image. So right now, 1 out of 10 user is sent to the new version of the Catalog service 
+which shows the correct product images with fixed product names.
+
+image::devops-canary-50-coolstore.png[Canary Release - 10% Traffic]
 
 When ready, click on **Input Required** in the pipeline and then **Approve** to increase the amount of traffic on the 
 new version. The pipeline progresses and now the new version receives 50% of the traffic.
@@ -273,5 +304,7 @@ Catalog service is removed and all traffic is sent to the new version.
 
 image::devops-canary-100-deployed.png[Canary Release - 100% Traffic]
 
+Point your browser to the Web UI route url in the production environment again and verify that product are displayed 
+correctly on every refresh.
 
-Well don! You have successfully completed this lab.
+Congratulations and well done! You have successfully completed this lab.

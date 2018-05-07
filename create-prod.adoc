@@ -338,3 +338,9 @@ virtual machines in DigitalOcean without logging into DigitalOcean. Note that yo
 see all databases from stage and production environments of all lab participants: {{DIGITALOCEAN_DASHBOARD}}
 
 {% endif %}
+
+Wait till all pods and the DigitalOcean MySQL database are deployed in the *CoolStore PROD*  
+environment and then point your browser to the Web route url in order to verify the CoolStore app is 
+working as expected in the staging environment.
+
+image::devops-intro-coolstore.png[CoolStore Webshop]
