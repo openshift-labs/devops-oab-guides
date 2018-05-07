@@ -67,7 +67,7 @@ the following sections will take place via the pipeline.
 
 [source,shell,role=copypaste]
 ----
-oc login {{OPENSHIFT_URL}}
+oc login {{OPENSHIFT_URL}} -u {{OPENSHIFT_USER}}
 ----
 
 CAUTION: Replace `PROD_TOKEN` with the auth token from the _oc whoami_ command.

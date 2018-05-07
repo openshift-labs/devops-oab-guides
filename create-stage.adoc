@@ -272,12 +272,15 @@ environment. After the pipeline finishes, check out Git and Nexus once more and 
 is created.
 
 Also, you might have noticed that the pipeline for *catalog-build* has also been triggered, this is because as
-part of the release process we update the version in the maven 
-http://{{ GIT_HOSTNAME }}/{{ GIT_USER }}/catalog-spring-boot/src/master/pom.xml#L6[`pom.xml`], so this new code will 
-be also deployed into our *CoolStore DEV* environment.
+part of the release process the maven 
+http://{{ GIT_HOSTNAME }}/{{ GIT_USER }}/catalog-spring-boot/src/master/pom.xml#L6[`pom.xml`] is 
+updated to increase the version number. Since the repository is updated then the build pipeline is triggered automatically to 
+deploy the new code *CoolStore DEV* environment.
 
 image::devops-stage-project-overview.png[Stage project overview]
 
 Wait till all pods are deployed in the *CoolStore STAGE*  environment and then point your browser to 
 the Web route url in the *CoolStore STAGE* environment in order to verify the CoolStore app is 
 working as expected in the staging environment.
+
+image::devops-intro-coolstore.png[CoolStore Webshop]
