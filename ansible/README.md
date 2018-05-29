@@ -22,6 +22,7 @@ Playbook Variables
 |`labs_github_ref`      | `master`      | GitHub branch to user for lab code https://github.com/openshift-labs/devops-oab-labs.git |
 |`configure_broker`     | `true`        | Configure Ansible Broker for DigitalOcean APBs. Needs cluster admin |
 |`clean_init`           | `false`       | Clean the environment and remove projects before init |
+|`digitalocean_api_key` | -             | DigitalOcean API Key |
 
 How To Run
 ------------
